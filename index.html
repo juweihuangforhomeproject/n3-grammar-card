@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#faf7f2">
+<title>N3 文法卡</title>
+<style>
+:root{
+  --bg:#faf7f2; --card:#ffffff; --ink:#2b2b2b; --sub:#8a8378;
+  --accent:#d0553e; --accent2:#33536e; --line:#eae4da;
+  --easy:#4c9a6f; --medium:#d99a2b; --hard:#c8503c; --new:#8a8378;
+  --shadow:0 2px 10px rgba(60,50,30,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","PingFang TC","Microsoft JhengHei",sans-serif;font-size:16px;padding-bottom:76px}
+.wrap{max-width:520px;margin:0 auto;padding:16px}
+h1{font-size:20px}
+.sub{color:var(--sub);font-size:13px}
+
+/* top bar */
+.topbar{display:flex;align-items:baseline;justify-content:space-between;padding:14px 16px 0}
+.topbar .brand{font-weight:700;font-size:18px}
+.sync{font-size:12px;color:var(--sub)}
+.sync.on{color:var(--easy)}
+
+/* countdown */
+.count{background:linear-gradient(135deg,var(--accent2),#24405a);color:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.count .big{font-size:34px;font-weight:800;line-height:1.1}
+.count .big span{font-size:16px;font-weight:500;opacity:.85}
+.count .row{display:flex;justify-content:space-between;align-items:flex-end}
+.count .label{font-size:13px;opacity:.85;margin-bottom:6px}
+
+/* generic card */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.btn{display:inline-block;border:none;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+.btn.full{width:100%;text-align:center}
+.btn.ghost{background:transparent;color:var(--accent2);border:1.5px solid var(--accent2)}
+.btn.small{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn.gray{background:#eee7dc;color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* progress */
+.prog{height:8px;background:#efe9df;border-radius:99px;overflow:hidden;margin:10px 0}
+.prog i{display:block;height:100%;background:var(--easy);border-radius:99px;transition:width .3s}
+
+/* review card */
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 20px;box-shadow:var(--shadow);min-height:220px;display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer}
+.rcard .grammar{font-size:30px;font-weight:800;letter-spacing:.02em}
+.rcard .hint{color:var(--sub);font-size:13px;margin-top:14px}
+.answer{text-align:left;margin-top:6px}
+.answer .meaning{font-size:17px;font-weight:700;color:var(--accent2);margin-bottom:10px}
+.expl{background:#f6f1e8;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.6;margin-bottom:10px}
+.ex{border-top:1px dashed var(--line);padding:10px 0;font-size:15px;line-height:1.65}
+.ex .zh{color:var(--sub);font-size:13px}
+.src{font-size:12.5px;color:var(--sub);background:#f6f1e8;border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5;white-space:pre-wrap}
+.speak{background:none;border:none;cursor:pointer;font-size:17px;padding:2px 6px;vertical-align:middle}
+.rates{display:flex;gap:10px;margin-top:14px}
+.rates .btn{flex:1;padding:13px 4px;font-size:15px}
+.rate-easy{background:var(--easy)} .rate-medium{background:var(--medium)} .rate-hard{background:var(--hard)}
+
+/* badges */
+.badge{display:inline-block;font-size:11.5px;font-weight:700;border-radius:99px;padding:3px 9px;color:#fff}
+.b-easy{background:var(--easy)}.b-medium{background:var(--medium)}.b-hard{background:var(--hard)}.b-new{background:var(--new)}
+
+/* add page */
+.drop{border:2px dashed #d8cfc0;border-radius:16px;padding:30px 16px;text-align:center;color:var(--sub);cursor:pointer;background:#fffdf9}
+.drop.busy{opacity:.55;pointer-events:none}
+.spinner{display:inline-block;width:18px;height:18px;border:3px solid #d8cfc0;border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;vertical-align:-4px;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.pcard input[type=text],.pcard textarea, .field input, .field textarea, .field select{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:14.5px;font-family:inherit;background:#fffdf9;margin-bottom:8px}
+.pcard textarea{resize:vertical;min-height:44px;line-height:1.5}
+.plabel{font-size:12px;color:var(--sub);font-weight:700;margin-bottom:3px}
+.pcard .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+
+/* library */
+.subtabs{display:flex;gap:8px;margin-bottom:14px}
+.subtabs button{flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-size:14.5px;font-weight:600;cursor:pointer;color:var(--sub)}
+.subtabs button.on{border-color:var(--accent2);color:var(--accent2);background:#eef3f7}
+.search{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-size:15px;background:var(--card);margin-bottom:12px;font-family:inherit}
+.group-title{font-size:14px;font-weight:800;margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.litem{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:var(--shadow)}
+.litem .g{font-weight:700;font-size:16.5px}
+.litem .m{color:var(--sub);font-size:13.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.litem .t{color:#b3aa9c;font-size:11.5px;margin-top:5px}
+.srcitem{white-space:pre-wrap;font-size:14px;line-height:1.6}
+.empty{text-align:center;color:var(--sub);padding:36px 10px;font-size:14.5px}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(40,30,20,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:600px){.modal-bg{align-items:center}}
+.modal{background:var(--bg);border-radius:20px 20px 0 0;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:20px 18px 30px}
+@media(min-width:600px){.modal{border-radius:20px}}
+.modal h3{font-size:20px;margin-bottom:4px}
+.mrow{display:flex;gap:10px;margin-top:16px}
+.mrow .btn{flex:1}
+
+/* settings */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-bottom:5px}
+.note{font-size:12.5px;color:var(--sub);line-height:1.55;margin-top:6px}
+.stat-ok{color:var(--easy);font-weight:700}.stat-bad{color:var(--hard);font-weight:700}
+
+/* bottom nav */
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,253,249,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;padding:9px 0 7px;font-size:11px;color:var(--sub);cursor:pointer;font-family:inherit}
+nav button .ic{display:block;font-size:21px;margin-bottom:2px}
+nav button.on{color:var(--accent)}
+.page{display:none}.page.on{display:block}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#333;color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;max-width:88%;text-align:center}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="brand">🌸 N3 文法卡</div><div class="sync" id="syncStat">本機模式</div></div>
+
+<div class="wrap">
+  <!-- 今日複習 -->
+  <section class="page on" id="page-home">
+    <div class="count">
+      <div class="label">JLPT N3 倒數 · 2026/12/01</div>
+      <div class="row"><div class="big" id="cd-days">–<span> 天</span></div><div class="big" id="cd-weeks" style="font-size:24px">–<span> 週</span></div></div>
+    </div>
+    <div id="home-body"></div>
+  </section>
+
+  <!-- 新增 -->
+  <section class="page" id="page-add">
+    <h1 style="margin-bottom:4px">新增文法卡</h1>
+    <p class="sub" style="margin-bottom:14px">上傳文法題或日文文章截圖，AI 會抓出文法重點</p>
+    <div class="drop" id="drop">
+      <div style="font-size:30px;margin-bottom:6px">📷</div>
+      <div id="dropText">點擊上傳截圖（可多張）<br><span style="font-size:12px">桌面版也可直接 ⌘V 貼上圖片</span></div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn ghost small" onclick="addManualCard()">✏️ 手動新增一張卡</button>
+      <button class="btn gray small" onclick="loadDemo()">🎁 載入範例資料試玩</button>
+    </div>
+    <div id="preview-area" style="margin-top:18px"></div>
+  </section>
+
+  <!-- Library -->
+  <section class="page" id="page-lib">
+    <h1 style="margin-bottom:12px">Library</h1>
+    <div class="subtabs">
+      <button id="lt-cards" class="on" onclick="setLibTab('cards')">文法卡</button>
+      <button id="lt-src" onclick="setLibTab('src')">原始文字</button>
+    </div>
+    <input class="search" id="libSearch" placeholder="搜尋文法、例句…" oninput="renderLibrary()">
+    <div id="lib-body"></div>
+  </section>
+
+  <!-- 設定 -->
+  <section class="page" id="page-set">
+    <h1 style="margin-bottom:12px">設定</h1>
+    <div class="panel">
+      <div class="field"><label>Anthropic API Key（截圖 AI 辨識用）</label>
+        <input type="password" id="setKey" placeholder="sk-ant-...">
+        <div class="note">在 console.anthropic.com 申請。沒填也能用手動新增與複習功能。</div></div>
+      <div class="field"><label>AI 模型</label>
+        <select id="setModel">
+          <option value="claude-sonnet-4-5">Claude Sonnet（辨識品質好，建議）</option>
+          <option value="claude-haiku-4-5">Claude Haiku（較便宜較快）</option>
+        </select></div>
+      <div class="field"><label>Supabase URL（跨裝置同步用）</label>
+        <input type="text" id="setSbUrl" placeholder="https://xxxx.supabase.co"></div>
+      <div class="field"><label>Supabase publishable key</label>
+        <input type="password" id="setSbKey" placeholder="sb_publishable_...（舊版專案為 eyJ 開頭的 anon key）">
+        <div class="note">沒填則資料只存在此裝置。詳見設定教學。</div></div>
+      <button class="btn full" onclick="saveSettings()">儲存設定</button>
+      <div class="note" id="setStat" style="margin-top:8px"></div>
+    </div>
+    <div class="panel">
+      <div class="plabel" style="margin-bottom:8px">資料備份</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost small" onclick="exportData()">⬇️ 匯出 JSON</button>
+        <button class="btn ghost small" onclick="document.getElementById('importFile').click()">⬆️ 匯入 JSON</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+    </div>
+    <div class="panel">
+      <div class="plabel" style="margin-bottom:8px">語音測試</div>
+      <button class="btn gray small" onclick="speak('日本語の文法を勉強しましょう')">🔊 測試日文發音</button>
+      <div class="note">使用裝置內建語音。iPhone 若無聲，請確認未開靜音鍵，並到 設定→輔助使用→朗讀內容 下載日文語音。</div>
+    </div>
+    <div class="panel">
+      <button class="btn small" style="background:var(--hard)" onclick="clearAll()">🗑️ 清除全部資料</button>
+    </div>
+    <p class="sub" style="text-align:center;margin:6px 0 20px">N3 Grammar Card · 為 Wei 而做 · がんばって！</p>
+  </section>
+</div>
+
+<div id="modal-root"></div>
+<div class="toast" id="toast"></div>
+
+<nav>
+  <button id="nav-home" class="on" onclick="go('home')"><span class="ic">📚</span>今日複習</button>
+  <button id="nav-add" onclick="go('add')"><span class="ic">➕</span>新增</button>
+  <button id="nav-lib" onclick="go('lib')"><span class="ic">🗂️</span>Library</button>
+  <button id="nav-set" onclick="go('set')"><span class="ic">⚙️</span>設定</button>
+</nav>
+
+<script>
+'use strict';
+/* ============ state & storage ============ */
+const TARGET = new Date(2026,11,1); // 2026-12-01
+const DAILY_MAX = 10;
+const MASTERY = {hard:{label:'記不住',cls:'hard',pr:0},medium:{label:'記憶中',cls:'medium',pr:1},new:{label:'新卡',cls:'new',pr:2},easy:{label:'簡單',cls:'easy',pr:3}};
+
+let state = {cards:[],sources:[],meta:{reviewLog:{},deleted:{}}};
+let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:''};
+let sb=null, applyingRemote=false, saveTimer=null, lastPushStamp=0;
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dateOf(ts){if(!ts)return '';const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fmt(ts){if(!ts)return '';const d=new Date(ts);return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function mast(c){return MASTERY[c.mastery]?c.mastery:'new';}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2200);}
+
+function loadLocal(){
+  try{const s=localStorage.getItem('n3_data');if(s){const d=JSON.parse(s);state={cards:d.cards||[],sources:d.sources||[],meta:Object.assign({reviewLog:{},deleted:{}},d.meta)};}}catch(e){}
+  try{const s=localStorage.getItem('n3_settings');if(s)Object.assign(settings,JSON.parse(s));}catch(e){}
+}
+function saveLocal(pushRemote=true){
+  localStorage.setItem('n3_data',JSON.stringify(state));
+  if(pushRemote)scheduleRemoteSave();
+}
+function saveSettingsLocal(){localStorage.setItem('n3_settings',JSON.stringify(settings));}
+
+/* ============ supabase sync ============ */
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+function applyRemote(d){
+  if(!d)return;
+  applyingRemote=true;mergeData(d);saveLocal(false);applyingRemote=false;renderAll();
+}
+async function fetchRemote(){
+  if(!sb)return;
+  const {data,error}=await sb.from('n3app').select('data').eq('id',1).maybeSingle();
+  if(error)throw error;
+  if(data&&data.data&&data.data.updatedAt!==lastPushStamp)applyRemote(data.data);
+}
+async function initSupabase(){
+  const el=document.getElementById('syncStat');
+  if(!settings.sbUrl||!settings.sbKey){el.textContent='本機模式';return;}
+  try{
+    el.textContent='雲端連線中…';
+    await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+    sb=window.supabase.createClient(settings.sbUrl,settings.sbKey);
+    await fetchRemote();
+    el.textContent='☁️ 已同步';el.className='sync on';
+    sb.channel('n3app-ch').on('postgres_changes',{event:'*',schema:'public',table:'n3app'},payload=>{
+      const d=payload.new&&payload.new.data;
+      if(d&&d.updatedAt!==lastPushStamp)applyRemote(d);
+    }).subscribe();
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchRemote().catch(()=>{});});
+    scheduleRemoteSave();
+  }catch(e){el.textContent='⚠️ 同步設定有誤';el.className='sync';console.error(e);}
+}
+function scheduleRemoteSave(){
+  if(!sb||applyingRemote)return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    lastPushStamp=Date.now();
+    sb.from('n3app').upsert({id:1,data:{cards:state.cards,sources:state.sources,meta:state.meta,updatedAt:lastPushStamp},updated_at:new Date().toISOString()})
+      .then(({error})=>{if(error)console.error('sync save',error);})
+      .catch(e=>console.error('sync save',e));
+  },800);
+}
+function mergeData(remote){
+  const del=Object.assign({},remote.meta&&remote.meta.deleted||{},state.meta.deleted||{});
+  function mergeArr(loc,rem){
+    const map={};
+    [].concat(rem||[],loc||[]).forEach(it=>{
+      if(!it||!it.id||del[it.id])return;
+      const ex=map[it.id];
+      if(!ex||(it.updatedAt||it.createdAt||0)>(ex.updatedAt||ex.createdAt||0))map[it.id]=it;
+    });
+    return Object.values(map);
+  }
+  state.cards=mergeArr(state.cards,remote.cards);
+  state.sources=mergeArr(state.sources,remote.sources);
+  const rl=Object.assign({},state.meta.reviewLog);
+  const rrl=remote.meta&&remote.meta.reviewLog||{};
+  Object.keys(rrl).forEach(k=>{rl[k]=Math.max(rl[k]||0,rrl[k]);});
+  state.meta={reviewLog:rl,deleted:del};
+}
+function deleteItem(arr,id){
+  const i=state[arr].findIndex(x=>x.id===id);
+  if(i>=0)state[arr].splice(i,1);
+  state.meta.deleted[id]=Date.now();
+  saveLocal();
+}
+
+/* ============ TTS ============ */
+let jaVoice=null;
+function pickVoice(){const vs=speechSynthesis.getVoices();jaVoice=vs.find(v=>v.lang==='ja-JP')||vs.find(v=>v.lang&&v.lang.startsWith('ja'))||null;}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function speak(text){
+  if(!('speechSynthesis' in window)){toast('此裝置不支援語音');return;}
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='ja-JP';if(jaVoice)u.voice=jaVoice;u.rate=0.88;
+  speechSynthesis.speak(u);
+}
+
+/* ============ nav / countdown ============ */
+function go(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('nav button').forEach(e=>e.classList.remove('on'));
+  document.getElementById('page-'+p).classList.add('on');
+  document.getElementById('nav-'+p).classList.add('on');
+  if(p==='home')renderHome();
+  if(p==='lib')renderLibrary();
+  if(p==='set')renderSettings();
+  window.scrollTo(0,0);
+}
+function renderCountdown(){
+  const now=new Date();now.setHours(0,0,0,0);
+  const days=Math.max(0,Math.round((TARGET-now)/86400000));
+  document.getElementById('cd-days').innerHTML=days+'<span> 天</span>';
+  document.getElementById('cd-weeks').innerHTML=Math.floor(days/7)+'<span> 週'+(days%7?'＋'+days%7+'天':'')+'</span>';
+}
+
+/* ============ 今日複習 ============ */
+let queue=[],qIdx=0,flipped=false,sessionOn=false;
+function reviewedToday(){return state.meta.reviewLog[todayStr()]||0;}
+function buildQueue(){
+  const t=todayStr(),remain=DAILY_MAX-reviewedToday();
+  if(remain<=0)return [];
+  return state.cards
+    .filter(c=>dateOf(c.lastReviewed)!==t)
+    .sort((a,b)=>MASTERY[mast(a)].pr-MASTERY[mast(b)].pr||(a.lastReviewed||0)-(b.lastReviewed||0))
+    .slice(0,remain);
+}
+function renderHome(){
+  renderCountdown();
+  const el=document.getElementById('home-body');
+  const done=reviewedToday(),total=state.cards.length;
+  if(sessionOn&&qIdx<queue.length){renderReviewCard(el);return;}
+  sessionOn=false;
+  const q=buildQueue();
+  let html='<div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>今日進度</b><span class="sub">'+done+' / '+DAILY_MAX+' 張</span></div>'
+    +'<div class="prog"><i style="width:'+(done/DAILY_MAX*100)+'%"></i></div>';
+  if(total===0){
+    html+='<p class="sub" style="margin:8px 0 12px">還沒有任何文法卡。先去「新增」上傳截圖，或載入範例資料試玩！</p><button class="btn full" onclick="go(\'add\')">➕ 去新增文法卡</button>';
+  }else if(done>=DAILY_MAX){
+    html+='<p style="margin:10px 0 4px">🎉 今日 '+DAILY_MAX+' 張完成，お疲れさま！明天見。</p>';
+  }else if(q.length===0){
+    html+='<p style="margin:10px 0 4px">今天可複習的卡都完成了！</p>';
+  }else{
+    html+='<p class="sub" style="margin:8px 0 12px">今天還有 '+q.length+' 張卡等著你（記不住的優先出現）</p><button class="btn full" onclick="startReview()">▶️ 開始複習</button>';
+  }
+  html+='</div>';
+  if(total>0){
+    const cnt={easy:0,medium:0,hard:0,new:0};
+    state.cards.forEach(c=>cnt[mast(c)]++);
+    html+='<div class="panel"><b>卡片總覽</b><span class="sub">（共 '+total+' 張）</span><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
+      +'<span class="badge b-hard">記不住 '+cnt.hard+'</span><span class="badge b-medium">記憶中 '+cnt.medium+'</span>'
+      +'<span class="badge b-easy">簡單 '+cnt.easy+'</span><span class="badge b-new">新卡 '+cnt.new+'</span></div></div>';
+  }
+  el.innerHTML=html;
+}
+function startReview(){queue=buildQueue();qIdx=0;flipped=false;sessionOn=true;renderHome();}
+function exampleHtml(exs){
+  return (exs||[]).map(e=>'<div class="ex"><div>'+esc(e.jp)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(e.jp)+')">🔊</button></div><div class="zh">'+esc(e.zh)+'</div></div>').join('');
+}
+function attr(s){return "'"+String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ')+"'";}
+function renderReviewCard(el){
+  const c=queue[qIdx];
+  const pos='<div class="sub" style="text-align:center;margin-bottom:10px">第 '+(qIdx+1)+' / '+queue.length+' 張 · 今日已完成 '+reviewedToday()+' 張</div>';
+  if(!flipped){
+    el.innerHTML=pos+'<div class="rcard" onclick="flipCard()"><div class="grammar">'+esc(c.grammar)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(c.grammar)+')">🔊</button></div><div class="hint">點擊卡片看解答 ▼</div></div>';
+  }else{
+    el.innerHTML=pos+'<div class="rcard" style="cursor:default;text-align:left"><div class="grammar" style="font-size:24px;text-align:center">'+esc(c.grammar)+'</div>'
+      +'<div class="answer"><div class="meaning">'+esc(c.meaning)+'</div>'
+      +(c.explanation?'<div class="expl">💡 '+esc(c.explanation)+'</div>':'')
+      +exampleHtml(c.examples)
+      +(c.source?'<div class="src">📷 原文：'+esc(c.source)+'</div>':'')
+      +'</div></div>'
+      +'<div class="rates"><button class="btn rate-hard" onclick="rate(\'hard\')">記不住</button><button class="btn rate-medium" onclick="rate(\'medium\')">記憶中</button><button class="btn rate-easy" onclick="rate(\'easy\')">簡單</button></div>';
+  }
+}
+function flipCard(){flipped=true;renderHome();}
+function rate(r){
+  const c=queue[qIdx];const real=state.cards.find(x=>x.id===c.id);
+  if(real){real.mastery=r;real.lastReviewed=Date.now();real.updatedAt=Date.now();real.reviewCount=(real.reviewCount||0)+1;}
+  const t=todayStr();state.meta.reviewLog[t]=(state.meta.reviewLog[t]||0)+1;
+  saveLocal();
+  qIdx++;flipped=false;
+  if(qIdx>=queue.length)sessionOn=false;
+  renderHome();
+}
+/* ============ AI 辨識 ============ */
+const AI_PROMPT=`你是日文 JLPT N3 文法助教。請分析這張截圖並輸出 JSON。
+步驟：
+1. 完整轉錄截圖中的日文文字（sourceText）。
+2. 判斷類型：文法選擇題（question）或一般文章/句子（passage）。
+3. 抓出值得做成複習卡的文法點，一張卡一個文法：
+- question 類型：以「正確答案」的文法為主，explanation 用繁體中文說明為什麼正確答案是它、其他選項為何不對。examples 第一句用題目原句（填入正確答案）。
+- passage 類型：抓截圖中出現的 N3 程度文法，examples 第一句用截圖原句。explanation 可簡短或留空字串。
+- 每張卡恰好兩個例句，第二句自創 N3 程度、貼近日常生活的例句。每句附繁體中文翻譯。
+- meaning：該文法的繁體中文意思＋接續方式（例：「〜たびに：每次…就…。接續：動辭書形／名詞の＋たびに」）。
+只輸出 JSON、不要 markdown 圍欄，格式：
+{"sourceText":"...","type":"question|passage","cards":[{"grammar":"...","meaning":"...","explanation":"...","examples":[{"jp":"...","zh":"..."},{"jp":"...","zh":"..."}]}]}`;
+
+async function analyzeImage(b64,mediaType){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'x-api-key':settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},
+    body:JSON.stringify({model:settings.model,max_tokens:4000,messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:mediaType,data:b64}},
+      {type:'text',text:AI_PROMPT}]}]})
+  });
+  if(!res.ok){const e=await res.text();throw new Error('API 錯誤 '+res.status+'：'+e.slice(0,200));}
+  const data=await res.json();
+  let txt=(data.content&&data.content[0]&&data.content[0].text||'').trim();
+  txt=txt.replace(/^```(json)?/,'').replace(/```$/,'').trim();
+  const a=txt.indexOf('{'),b=txt.lastIndexOf('}');
+  return JSON.parse(txt.slice(a,b+1));
+}
+
+/* ============ 新增 / preview ============ */
+let pending=[]; // {grammar,meaning,explanation,examples:[{jp,zh},{jp,zh}],source}
+let pendingSources=[]; // {text,type}
+
+function fileToB64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const s=r.result;res(s.slice(s.indexOf(',')+1));};r.onerror=rej;r.readAsDataURL(file);});}
+
+async function handleFiles(files){
+  files=Array.from(files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length)return;
+  if(!settings.apiKey){toast('請先到「設定」填入 Anthropic API Key');go('set');return;}
+  const drop=document.getElementById('drop'),txt=document.getElementById('dropText');
+  drop.classList.add('busy');
+  let ok=0;
+  for(let i=0;i<files.length;i++){
+    txt.innerHTML='<span class="spinner"></span>AI 辨識中… ('+(i+1)+'/'+files.length+')';
+    try{
+      const b64=await fileToB64(files[i]);
+      const out=await analyzeImage(b64,files[i].type);
+      const srcText=out.sourceText||'';
+      pendingSources.push({text:srcText,type:out.type||'passage'});
+      (out.cards||[]).forEach(c=>{
+        pending.push({grammar:c.grammar||'',meaning:c.meaning||'',explanation:c.explanation||'',
+          examples:[(c.examples&&c.examples[0])||{jp:'',zh:''},(c.examples&&c.examples[1])||{jp:'',zh:''}],
+          source:srcText});
+      });
+      ok++;
+    }catch(e){console.error(e);toast('辨識失敗：'+e.message);}
+  }
+  drop.classList.remove('busy');
+  txt.innerHTML='點擊上傳截圖（可多張）<br><span style="font-size:12px">桌面版也可直接 ⌘V 貼上圖片</span>';
+  if(ok)toast('辨識完成，請確認下方卡片');
+  renderPreview();
+}
+
+function addManualCard(){
+  pending.push({grammar:'',meaning:'',explanation:'',examples:[{jp:'',zh:''},{jp:'',zh:''}],source:''});
+  renderPreview();
+  setTimeout(()=>{const p=document.getElementById('preview-area');p.scrollIntoView({behavior:'smooth'});},50);
+}
+
+function pset(i,path,val){
+  const p=pending[i];if(!p)return;
+  if(path==='ex0jp')p.examples[0].jp=val;else if(path==='ex0zh')p.examples[0].zh=val;
+  else if(path==='ex1jp')p.examples[1].jp=val;else if(path==='ex1zh')p.examples[1].zh=val;
+  else p[path]=val;
+}
+function pdel(i){pending.splice(i,1);renderPreview();}
+
+function renderPreview(){
+  const el=document.getElementById('preview-area');
+  if(!pending.length){el.innerHTML='';return;}
+  let html='<h3 style="margin-bottom:4px">卡片 Preview（'+pending.length+' 張）</h3><p class="sub" style="margin-bottom:12px">可直接編輯或刪除，確認後入庫</p>';
+  pending.forEach((p,i)=>{
+    html+='<div class="pcard"><div class="head"><b>卡 '+(i+1)+'</b><button class="btn small" style="background:var(--hard)" onclick="pdel('+i+')">刪除</button></div>'
+      +'<div class="plabel">文法</div><input type="text" value="'+esc(p.grammar)+'" oninput="pset('+i+',\'grammar\',this.value)">'
+      +'<div class="plabel">意思／接續（繁中）</div><textarea oninput="pset('+i+',\'meaning\',this.value)">'+esc(p.meaning)+'</textarea>'
+      +'<div class="plabel">解析（為什麼是這個答案，可留空）</div><textarea oninput="pset('+i+',\'explanation\',this.value)">'+esc(p.explanation)+'</textarea>'
+      +'<div class="plabel">例句 1（日）</div><textarea oninput="pset('+i+',\'ex0jp\',this.value)">'+esc(p.examples[0].jp)+'</textarea>'
+      +'<div class="plabel">例句 1（中）</div><textarea oninput="pset('+i+',\'ex0zh\',this.value)">'+esc(p.examples[0].zh)+'</textarea>'
+      +'<div class="plabel">例句 2（日）</div><textarea oninput="pset('+i+',\'ex1jp\',this.value)">'+esc(p.examples[1].jp)+'</textarea>'
+      +'<div class="plabel">例句 2（中）</div><textarea oninput="pset('+i+',\'ex1zh\',this.value)">'+esc(p.examples[1].zh)+'</textarea>'
+      +'</div>';
+  });
+  html+='<div style="display:flex;gap:10px;margin-top:6px"><button class="btn full" onclick="confirmPending()">✅ 全部入庫（'+pending.length+' 張）</button><button class="btn gray" onclick="discardPending()">捨棄</button></div>';
+  el.innerHTML=html;
+}
+function confirmPending(){
+  const now=Date.now();
+  pendingSources.forEach(s=>{if(s.text)state.sources.push({id:uid(),text:s.text,type:s.type,createdAt:now});});
+  let n=0;
+  pending.forEach(p=>{
+    if(!p.grammar.trim())return;
+    state.cards.push({id:uid(),grammar:p.grammar.trim(),meaning:p.meaning,explanation:p.explanation,
+      examples:p.examples.filter(e=>e.jp),source:p.source,mastery:'new',createdAt:now,updatedAt:now,lastReviewed:0,reviewCount:0});
+    n++;
+  });
+  pending=[];pendingSources=[];
+  saveLocal();renderPreview();
+  toast('已加入 '+n+' 張文法卡！');
+  go('home');
+}
+function discardPending(){if(!confirm('捨棄這些 preview 卡片？'))return;pending=[];pendingSources=[];renderPreview();}
+
+/* ============ Library ============ */
+let libTab='cards';
+function setLibTab(t){libTab=t;document.getElementById('lt-cards').classList.toggle('on',t==='cards');document.getElementById('lt-src').classList.toggle('on',t==='src');renderLibrary();}
+function renderLibrary(){
+  const el=document.getElementById('lib-body');
+  const q=(document.getElementById('libSearch').value||'').trim().toLowerCase();
+  if(libTab==='src'){
+    let list=state.sources.slice().sort((a,b)=>b.createdAt-a.createdAt);
+    if(q)list=list.filter(s=>s.text.toLowerCase().includes(q));
+    el.innerHTML=list.length?list.map(s=>'<div class="litem" style="cursor:default"><div class="srcitem">'+esc(s.text)+'</div><div class="t">'+(s.type==='question'?'📝 題型':'📄 文章')+' · '+fmt(s.createdAt)+' <button class="btn small gray" style="float:right" onclick="delSource(\''+s.id+'\')">刪除</button></div></div>').join('')
+      :'<div class="empty">還沒有原始文字紀錄</div>';
+    return;
+  }
+  let cards=state.cards.slice();
+  if(q)cards=cards.filter(c=>(c.grammar+c.meaning+(c.examples||[]).map(e=>e.jp+e.zh).join('')).toLowerCase().includes(q));
+  if(!cards.length){el.innerHTML='<div class="empty">'+(q?'找不到符合的卡片':'還沒有文法卡，去「新增」建立吧！')+'</div>';return;}
+  let html='';
+  ['hard','medium','easy','new'].forEach(m=>{
+    const g=cards.filter(c=>mast(c)===m).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    if(!g.length)return;
+    html+='<div class="group-title"><span class="badge b-'+m+'">'+MASTERY[m].label+'</span><span class="sub">'+g.length+' 張</span></div>';
+    g.forEach(c=>{html+='<div class="litem" onclick="openCard(\''+c.id+'\')"><div class="g">'+esc(c.grammar)+'</div><div class="m">'+esc(c.meaning)+'</div><div class="t">建立 '+fmt(c.createdAt)+(c.lastReviewed?' · 上次複習 '+fmt(c.lastReviewed):'')+'</div></div>';});
+  });
+  el.innerHTML=html;
+}
+function delSource(id){if(confirm('刪除這筆原始文字？'))
+{deleteItem('sources',id);renderLibrary();}}
+
+/* card detail modal */
+function openCard(id){
+  const c=state.cards.find(x=>x.id===id);if(!c)return;
+  const m=mast(c);
+  document.getElementById('modal-root').innerHTML=
+  '<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">'
+  +'<h3>'+esc(c.grammar)+' <button class="speak" onclick="speak('+attr(c.grammar)+')">🔊</button></h3>'
+  +'<span class="badge b-'+m+'">'+MASTERY[m].label+'</span> <span class="sub">複習 '+(c.reviewCount||0)+' 次</span>'
+  +'<div class="answer" style="margin-top:12px"><div class="meaning">'+esc(c.meaning)+'</div>'
+  +(c.explanation?'<div class="expl">💡 '+esc(c.explanation)+'</div>':'')
+  +exampleHtml(c.examples)
+  +(c.source?'<div class="src">📷 原文：'+esc(c.source)+'</div>':'')
+  +'</div><div class="mrow"><button class="btn ghost" onclick="editCard(\''+c.id+'\')">✏️ 編輯</button>'
+  +'<button class="btn" style="background:var(--hard)" onclick="delCard(\''+c.id+'\')">🗑️ 刪除</button>'
+  +'<button class="btn gray" onclick="closeModal()">關閉</button></div></div></div>';
+}
+function closeModal(){document.getElementById('modal-root').innerHTML='';}
+function delCard(id){if(!confirm('刪除這張卡？'))return;deleteItem('cards',id);closeModal();renderLibrary();renderHome();}
+function editCard(id){
+  const c=state.cards.find(x=>x.id===id);if(!c)return;
+  while(c.examples.length<2)c.examples.push({jp:'',zh:''});
+  document.getElementById('modal-root').innerHTML=
+  '<div class="modal-bg"><div class="modal"><h3>編輯卡片</h3><div class="pcard" style="margin-top:12px">'
+  +'<div class="plabel">文法</div><input type="text" id="e-g" value="'+esc(c.grammar)+'">'
+  +'<div class="plabel">意思／接續</div><textarea id="e-m">'+esc(c.meaning)+'</textarea>'
+  +'<div class="plabel">解析</div><textarea id="e-x">'+esc(c.explanation||'')+'</textarea>'
+  +'<div class="plabel">例句 1（日）</div><textarea id="e-0j">'+esc(c.examples[0].jp)+'</textarea>'
+  +'<div class="plabel">例句 1（中）</div><textarea id="e-0z">'+esc(c.examples[0].zh)+'</textarea>'
+  +'<div class="plabel">例句 2（日）</div><textarea id="e-1j">'+esc(c.examples[1].jp)+'</textarea>'
+  +'<div class="plabel">例句 2（中）</div><textarea id="e-1z">'+esc(c.examples[1].zh)+'</textarea>'
+  +'<div class="plabel">理解程度</div><select id="e-s">'
+  +['new','hard','medium','easy'].map(m=>'<option value="'+m+'"'+(mast(c)===m?' selected':'')+'>'+MASTERY[m].label+'</option>').join('')
+  +'</select></div><div class="mrow"><button class="btn" onclick="saveCardEdit(\''+c.id+'\')">💾 儲存</button><button class="btn gray" onclick="openCard(\''+c.id+'\')">取消</button></div></div></div>';
+}
+function saveCardEdit(id){
+  const c=state.cards.find(x=>x.id===id);if(!c)return;
+  const v=i=>document.getElementById(i).value;
+  c.grammar=v('e-g');c.meaning=v('e-m');c.explanation=v('e-x');
+  c.examples=[{jp:v('e-0j'),zh:v('e-0z')},{jp:v('e-1j'),zh:v('e-1z')}].filter(e=>e.jp);
+  c.mastery=v('e-s');c.updatedAt=Date.now();
+  saveLocal();closeModal();renderLibrary();renderHome();toast('已儲存');
+}
+
+/* ============ 設定 ============ */
+function renderSettings(){
+  document.getElementById('setKey').value=settings.apiKey;
+  document.getElementById('setModel').value=settings.model;
+  document.getElementById('setSbUrl').value=settings.sbUrl;
+  document.getElementById('setSbKey').value=settings.sbKey;
+  document.getElementById('setStat').innerHTML=
+    'AI 辨識：'+(settings.apiKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定</span>')
+    +' ｜ 雲端同步：'+(settings.sbUrl&&settings.sbKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定（本機模式）</span>');
+}
+function saveSettings(){
+  const sbChanged=document.getElementById('setSbUrl').value.trim()!==settings.sbUrl
+    ||document.getElementById('setSbKey').value.trim()!==settings.sbKey;
+  settings.apiKey=document.getElementById('setKey').value.trim();
+  settings.model=document.getElementById('setModel').value;
+  settings.sbUrl=document.getElementById('setSbUrl').value.trim().replace(/\/+$/,'');
+  settings.sbKey=document.getElementById('setSbKey').value.trim();
+  saveSettingsLocal();renderSettings();toast('設定已儲存');
+  if(sbChanged)setTimeout(()=>location.reload(),600);
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='n3-grammar-backup-'+todayStr()+'.json';a.click();
+}
+function importData(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);mergeData(d);saveLocal();renderAll();toast('匯入完成，共 '+state.cards.length+' 張卡');}catch(e){toast('匯入失敗：檔案格式不正確');}};
+  r.readAsText(f);inp.value='';
+}
+function clearAll(){
+  if(!confirm('確定清除全部卡片與紀錄？（不會刪除雲端另一裝置的備份設定）'))return;
+  if(!confirm('真的確定嗎？此動作無法復原'))return;
+  state.cards.forEach(c=>state.meta.deleted[c.id]=Date.now());
+  state.sources.forEach(s=>state.meta.deleted[s.id]=Date.now());
+  state.cards=[];state.sources=[];state.meta.reviewLog={};
+  saveLocal();renderAll();toast('已清除');
+}
+
+/* ============ demo ============ */
+function loadDemo(){
+  const now=Date.now();
+  const demo=[
+    {grammar:'〜たびに',meaning:'每次…就…。接續：動辭書形／名詞の＋たびに',explanation:'「たびに」表示「每次做某事都會發生後項」。選項「〜ながら」表同時進行、「〜まま」表狀態持續，語意不合。',
+     examples:[{jp:'この写真を見るたびに、日本の旅行を思い出します。',zh:'每次看到這張照片，就會想起日本的旅行。'},{jp:'彼に会うたびに、元気をもらいます。',zh:'每次見到他，都會得到活力。'}],
+     source:'この写真を見る（　）、日本の旅行を思い出します。 1.ながら 2.たびに 3.まま 4.ばかり'},
+    {grammar:'〜ばかりでなく',meaning:'不僅…而且…。接續：動普通形／い形／な形な／名詞＋ばかりでなく',explanation:'',
+     examples:[{jp:'彼は英語ばかりでなく、フランス語も話せます。',zh:'他不僅會英語，也會說法語。'},{jp:'この店は安いばかりでなく、味もいいです。',zh:'這家店不僅便宜，味道也好。'}],
+     source:'彼は英語ばかりでなく、フランス語も話せます。'},
+    {grammar:'〜ようになる',meaning:'變得會…／開始…（能力或習慣的變化）。接續：動辭書形／可能形＋ようになる',explanation:'',
+     examples:[{jp:'毎日練習して、漢字が読めるようになりました。',zh:'每天練習後，變得會讀漢字了。'},{jp:'日本のニュースを聞くようになりました。',zh:'開始會聽日本的新聞了。'}],
+     source:'毎日練習して、漢字が読めるようになりました。'}
+  ];
+  demo.forEach((d,i)=>{
+    state.cards.push(Object.assign({id:uid()+i,mastery:'new',createdAt:now,updatedAt:now,lastReviewed:0,reviewCount:0},d));
+    state.sources.push({id:uid()+'s'+i,text:d.source,type:i===0?'question':'passage',createdAt:now});
+  });
+  saveLocal();toast('已載入 3 張範例卡！');go('home');
+}
+
+/* ============ init ============ */
+function renderAll(){renderHome();renderLibrary();renderSettings();}
+document.getElementById('drop').addEventListener('click',()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change',e=>{handleFiles(e.target.files);e.target.value='';});
+document.addEventListener('paste',e=>{
+  if(!document.getElementById('page-add').classList.contains('on'))return;
+  const items=Array.from(e.clipboardData.items).filter(i=>i.type.startsWith('image/')).map(i=>i.getAsFile());
+  if(items.length)handleFiles(items);
+});
+['dragover','drop'].forEach(ev=>document.getElementById('drop').addEventListener(ev,e=>{
+  e.preventDefault();
+  if(ev==='drop')handleFiles(e.dataTransfer.files);
+}));
+
+loadLocal();
+renderCountdown();
+renderAll();
+initSupabase();
+setInterval(renderCountdown,60*60*1000);
+</script>
+</body>
+</html>
