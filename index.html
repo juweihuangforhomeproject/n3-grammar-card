@@ -127,6 +127,7 @@ nav button.on{color:var(--accent)}
     <div class="count">
       <div class="label">JLPT N3 倒數 · 2026/12/01</div>
       <div class="row"><div class="big" id="cd-days">–<span> 天</span></div><div class="big" id="cd-weeks" style="font-size:24px">–<span> 週</span></div></div>
+      <div class="label" id="streak" style="margin-top:10px;margin-bottom:0"></div>
     </div>
     <div id="home-body"></div>
   </section>
@@ -170,6 +171,11 @@ nav button.on{color:var(--accent)}
           <option value="claude-sonnet-4-5">Claude Sonnet（辨識品質好，建議）</option>
           <option value="claude-haiku-4-5">Claude Haiku（較便宜較快）</option>
         </select></div>
+      <div class="field"><label>每日複習張數上限</label>
+        <input type="number" id="setDaily" min="1" max="100" inputmode="numeric">
+        <div class="note">預設 10。考前衝刺可調高，自由加練不受此限制。</div></div>
+      <div class="field"><label>複習時自動發音</label>
+        <select id="setSpeak"><option value="1">開（出卡唸文法、翻卡唸例句）</option><option value="0">關</option></select></div>
       <div class="field"><label>AI 額外指示（選填）</label>
         <textarea id="setExtra" rows="3" placeholder="例：例句都要加ふりがな／解析再詳細一點／不要抓 N4 以下的文法"></textarea>
         <div class="note">會附加在辨識指令的最後，用中文寫即可。留空則用預設行為。</div></div>
@@ -216,11 +222,12 @@ nav button.on{color:var(--accent)}
 'use strict';
 /* ============ state & storage ============ */
 const TARGET = new Date(2026,11,1); // 2026-12-01
-const DAILY_MAX = 10;
+const INTERVALS = {hard:1,medium:3,easy:7,new:0}; // 間隔重複：幾天後到期
+function dmax(){const n=parseInt(settings.dailyMax,10);return n>0?n:10;}
 const MASTERY = {hard:{label:'記不住',cls:'hard',pr:0},medium:{label:'記憶中',cls:'medium',pr:1},new:{label:'新卡',cls:'new',pr:2},easy:{label:'簡單',cls:'easy',pr:3}};
 
-let state = {cards:[],sources:[],meta:{reviewLog:{},deleted:{}}};
-let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:'',extra:''};
+let state = {cards:[],sources:[],meta:{reviewLog:{},deleted:{},visits:{}}};
+let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:'',extra:'',dailyMax:10,autoSpeak:true};
 let sb=null, applyingRemote=false, saveTimer=null, lastPushStamp=0;
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
@@ -232,7 +239,7 @@ function mast(c){return MASTERY[c.mastery]?c.mastery:'new';}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2200);}
 
 function loadLocal(){
-  try{const s=localStorage.getItem('n3_data');if(s){const d=JSON.parse(s);state={cards:d.cards||[],sources:d.sources||[],meta:Object.assign({reviewLog:{},deleted:{}},d.meta)};}}catch(e){}
+  try{const s=localStorage.getItem('n3_data');if(s){const d=JSON.parse(s);state={cards:d.cards||[],sources:d.sources||[],meta:Object.assign({reviewLog:{},deleted:{},visits:{}},d.meta)};}}catch(e){}
   try{const s=localStorage.getItem('n3_settings');if(s)Object.assign(settings,JSON.parse(s));}catch(e){}
 }
 function saveLocal(pushRemote=true){
@@ -296,7 +303,8 @@ function mergeData(remote){
   const rl=Object.assign({},state.meta.reviewLog);
   const rrl=remote.meta&&remote.meta.reviewLog||{};
   Object.keys(rrl).forEach(k=>{rl[k]=Math.max(rl[k]||0,rrl[k]);});
-  state.meta={reviewLog:rl,deleted:del};
+  const vs=Object.assign({},state.meta.visits,remote.meta&&remote.meta.visits||{});
+  state.meta={reviewLog:rl,deleted:del,visits:vs};
 }
 function deleteItem(arr,id){
   const i=state[arr].findIndex(x=>x.id===id);
@@ -334,16 +342,35 @@ function renderCountdown(){
   const days=Math.max(0,Math.round((TARGET-now)/86400000));
   document.getElementById('cd-days').innerHTML=days+'<span> 天</span>';
   document.getElementById('cd-weeks').innerHTML=Math.floor(days/7)+'<span> 週'+(days%7?'＋'+days%7+'天':'')+'</span>';
+  const n=streakDays();
+  document.getElementById('streak').textContent=n>=2?'🔥 已連續學習 '+n+' 天，繼續保持！':'🔥 今天也來報到了！';
+}
+function markVisit(){
+  const t=todayStr();
+  if(!state.meta.visits)state.meta.visits={};
+  if(!state.meta.visits[t]){state.meta.visits[t]=1;saveLocal();}
+}
+function streakDays(){
+  const v=state.meta.visits||{};let n=0;const d=new Date();
+  while(v[dateOf(d.getTime())]){n++;d.setDate(d.getDate()-1);}
+  return n;
 }
 
 /* ============ 今日複習 ============ */
-let queue=[],qIdx=0,flipped=false,sessionOn=false;
+let queue=[],qIdx=0,flipped=false,sessionOn=false,freeMode=false;
 function reviewedToday(){return state.meta.reviewLog[todayStr()]||0;}
+function daysSince(ts){
+  if(!ts)return 9999;
+  const a=new Date();a.setHours(0,0,0,0);
+  const b=new Date(ts);b.setHours(0,0,0,0);
+  return Math.round((a-b)/86400000);
+}
+function isDue(c){return daysSince(c.lastReviewed)>=(INTERVALS[mast(c)]||0);}
 function buildQueue(){
-  const t=todayStr(),remain=DAILY_MAX-reviewedToday();
+  const t=todayStr(),remain=dmax()-reviewedToday();
   if(remain<=0)return [];
   return state.cards
-    .filter(c=>dateOf(c.lastReviewed)!==t)
+    .filter(c=>dateOf(c.lastReviewed)!==t&&isDue(c))
     .sort((a,b)=>MASTERY[mast(a)].pr-MASTERY[mast(b)].pr||(a.lastReviewed||0)-(b.lastReviewed||0))
     .slice(0,remain);
 }
@@ -354,17 +381,18 @@ function renderHome(){
   if(sessionOn&&qIdx<queue.length){renderReviewCard(el);return;}
   sessionOn=false;
   const q=buildQueue();
-  let html='<div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>今日進度</b><span class="sub">'+done+' / '+DAILY_MAX+' 張</span></div>'
-    +'<div class="prog"><i style="width:'+(done/DAILY_MAX*100)+'%"></i></div>';
+  let html='<div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>今日進度</b><span class="sub">'+done+' / '+dmax()+' 張</span></div>'
+    +'<div class="prog"><i style="width:'+Math.min(100,done/dmax()*100)+'%"></i></div>';
   if(total===0){
     html+='<p class="sub" style="margin:8px 0 12px">還沒有任何文法卡。先去「新增」上傳截圖，或載入範例資料試玩！</p><button class="btn full" onclick="go(\'add\')">➕ 去新增文法卡</button>';
-  }else if(done>=DAILY_MAX){
-    html+='<p style="margin:10px 0 4px">🎉 今日 '+DAILY_MAX+' 張完成，お疲れさま！明天見。</p>';
+  }else if(done>=dmax()){
+    html+='<p style="margin:10px 0 4px">🎉 今日 '+dmax()+' 張完成，お疲れさま！</p>';
   }else if(q.length===0){
-    html+='<p style="margin:10px 0 4px">今天可複習的卡都完成了！</p>';
+    html+='<p style="margin:10px 0 4px">今天到期的卡都複習完了！（簡單的卡 7 天後、記憶中 3 天後、記不住隔天會再出現）</p>';
   }else{
-    html+='<p class="sub" style="margin:8px 0 12px">今天還有 '+q.length+' 張卡等著你（記不住的優先出現）</p><button class="btn full" onclick="startReview()">▶️ 開始複習</button>';
+    html+='<p class="sub" style="margin:8px 0 12px">今天有 '+q.length+' 張到期的卡（記不住的優先出現）</p><button class="btn full" onclick="startReview()">▶️ 開始複習</button>';
   }
+  if(total>0)html+='<button class="btn ghost full" style="margin-top:10px" onclick="startFree()">🔁 自由加練（不限次數，不計入每日進度）</button>';
   html+='</div>';
   if(total>0){
     const cnt={easy:0,medium:0,hard:0,new:0};
@@ -375,14 +403,22 @@ function renderHome(){
   }
   el.innerHTML=html;
 }
-function startReview(){queue=buildQueue();qIdx=0;flipped=false;sessionOn=true;renderHome();}
+function startReview(){queue=buildQueue();qIdx=0;flipped=false;sessionOn=true;freeMode=false;renderHome();}
+function startFree(){
+  queue=state.cards.slice().sort((a,b)=>MASTERY[mast(a)].pr-MASTERY[mast(b)].pr||(a.lastReviewed||0)-(b.lastReviewed||0));
+  qIdx=0;flipped=false;sessionOn=true;freeMode=true;renderHome();
+}
+function endSession(){sessionOn=false;freeMode=false;renderHome();}
 function exampleHtml(exs){
   return (exs||[]).map(e=>'<div class="ex"><div>'+esc(e.jp)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(e.jp)+')">🔊</button></div><div class="zh">'+esc(e.zh)+'</div></div>').join('');
 }
 function attr(s){return "'"+String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ')+"'";}
 function renderReviewCard(el){
   const c=queue[qIdx];
-  const pos='<div class="sub" style="text-align:center;margin-bottom:10px">第 '+(qIdx+1)+' / '+queue.length+' 張 · 今日已完成 '+reviewedToday()+' 張</div>';
+  const pos='<div class="sub" style="text-align:center;margin-bottom:10px">'
+    +(freeMode?'🔁 自由加練 ':'')+'第 '+(qIdx+1)+' / '+queue.length+' 張'
+    +(freeMode?'':' · 今日已完成 '+reviewedToday()+' 張')
+    +' &nbsp;<a href="javascript:endSession()" style="color:var(--accent2)">結束</a></div>';
   if(!flipped){
     el.innerHTML=pos+'<div class="rcard" onclick="flipCard()"><div class="grammar">'+esc(c.grammar)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(c.grammar)+')">🔊</button></div><div class="hint">點擊卡片看解答 ▼</div></div>';
   }else{
@@ -394,15 +430,22 @@ function renderReviewCard(el){
       +'</div></div>'
       +'<div class="rates"><button class="btn rate-hard" onclick="rate(\'hard\')">記不住</button><button class="btn rate-medium" onclick="rate(\'medium\')">記憶中</button><button class="btn rate-easy" onclick="rate(\'easy\')">簡單</button></div>';
   }
+  if(settings.autoSpeak!==false){
+    if(!flipped)speak(c.grammar);
+    else if(c.examples&&c.examples[0]&&c.examples[0].jp)speak(c.examples[0].jp);
+  }
 }
 function flipCard(){flipped=true;renderHome();}
 function rate(r){
   const c=queue[qIdx];const real=state.cards.find(x=>x.id===c.id);
-  if(real){real.mastery=r;real.lastReviewed=Date.now();real.updatedAt=Date.now();real.reviewCount=(real.reviewCount||0)+1;}
-  const t=todayStr();state.meta.reviewLog[t]=(state.meta.reviewLog[t]||0)+1;
+  if(real){
+    real.mastery=r;real.updatedAt=Date.now();real.reviewCount=(real.reviewCount||0)+1;
+    if(!freeMode)real.lastReviewed=Date.now();
+  }
+  if(!freeMode){const t=todayStr();state.meta.reviewLog[t]=(state.meta.reviewLog[t]||0)+1;}
   saveLocal();
   qIdx++;flipped=false;
-  if(qIdx>=queue.length)sessionOn=false;
+  if(qIdx>=queue.length){if(freeMode)toast('這一輪練完了！可以再來一輪 🔁');sessionOn=false;freeMode=false;}
   renderHome();
 }
 /* ============ AI 辨識 ============ */
@@ -598,6 +641,8 @@ function renderSettings(){
   document.getElementById('setSbUrl').value=settings.sbUrl;
   document.getElementById('setSbKey').value=settings.sbKey;
   document.getElementById('setExtra').value=settings.extra||'';
+  document.getElementById('setDaily').value=dmax();
+  document.getElementById('setSpeak').value=settings.autoSpeak===false?'0':'1';
   document.getElementById('setStat').innerHTML=
     'AI 辨識：'+(settings.apiKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定</span>')
     +' ｜ 雲端同步：'+(settings.sbUrl&&settings.sbKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定（本機模式）</span>');
@@ -608,6 +653,8 @@ function saveSettings(){
   settings.apiKey=document.getElementById('setKey').value.trim();
   settings.model=document.getElementById('setModel').value;
   settings.extra=document.getElementById('setExtra').value.trim();
+  settings.dailyMax=parseInt(document.getElementById('setDaily').value,10)||10;
+  settings.autoSpeak=document.getElementById('setSpeak').value==='1';
   settings.sbUrl=document.getElementById('setSbUrl').value.trim().replace(/\/+$/,'');
   settings.sbKey=document.getElementById('setSbKey').value.trim();
   saveSettingsLocal();renderSettings();toast('設定已儲存');
@@ -669,6 +716,7 @@ document.addEventListener('paste',e=>{
 }));
 
 loadLocal();
+markVisit();
 renderCountdown();
 renderAll();
 initSupabase();
