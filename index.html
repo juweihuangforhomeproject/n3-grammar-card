@@ -58,6 +58,8 @@ h1{font-size:20px}
 .expl{background:#f6f1e8;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.6;margin-bottom:10px}
 .ex{border-top:1px dashed var(--line);padding:10px 0;font-size:15px;line-height:1.65}
 .ex .zh{color:var(--sub);font-size:13px}
+.exlb{display:inline-block;font-size:11px;font-weight:700;color:var(--accent2);border:1px solid var(--accent2);border-radius:6px;padding:1px 7px;margin-bottom:3px;vertical-align:2px}
+.usage{background:#eef3f7;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.75;margin-bottom:10px;color:var(--accent2);white-space:pre-wrap}
 .src{font-size:12.5px;color:var(--sub);background:#f6f1e8;border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5;white-space:pre-wrap}
 .speak{background:none;border:none;cursor:pointer;font-size:17px;padding:2px 6px;vertical-align:middle}
 .rates{display:flex;gap:10px;margin-top:14px}
@@ -410,8 +412,9 @@ function startFree(){
 }
 function endSession(){sessionOn=false;freeMode=false;renderHome();}
 function exampleHtml(exs){
-  return (exs||[]).map(e=>'<div class="ex"><div>'+esc(e.jp)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(e.jp)+')">🔊</button></div><div class="zh">'+esc(e.zh)+'</div></div>').join('');
+  return (exs||[]).map(e=>'<div class="ex">'+(e.label?'<div><span class="exlb">'+esc(e.label)+'</span></div>':'')+'<div>'+esc(e.jp)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(e.jp)+')">🔊</button></div><div class="zh">'+esc(e.zh)+'</div></div>').join('');
 }
+function usageHtml(c){return c.usage?'<div class="usage"><b>接續</b>\n'+esc(c.usage)+'</div>':'';}
 function attr(s){return "'"+String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ')+"'";}
 function renderReviewCard(el){
   const c=queue[qIdx];
@@ -424,6 +427,7 @@ function renderReviewCard(el){
   }else{
     el.innerHTML=pos+'<div class="rcard" style="cursor:default;text-align:left"><div class="grammar" style="font-size:24px;text-align:center">'+esc(c.grammar)+'</div>'
       +'<div class="answer"><div class="meaning">'+esc(c.meaning)+'</div>'
+      +usageHtml(c)
       +(c.explanation?'<div class="expl">💡 '+esc(c.explanation)+'</div>':'')
       +exampleHtml(c.examples)
       +(c.source?'<div class="src">📷 原文：'+esc(c.source)+'</div>':'')
@@ -453,16 +457,18 @@ const AI_PROMPT=`你是日文 JLPT N3 文法助教。請分析這張截圖並輸
 步驟：
 1. 完整轉錄截圖中的日文文字（sourceText）。
 2. 判斷類型：文法選擇題（question）或一般文章/句子（passage）。
-3. 抓出值得做成複習卡的文法點，一張卡一個文法：
+3. 抓出值得做成複習卡的文法點，一張卡一個文法。每張卡分三部分：
+- meaning：該文法的繁體中文意思，簡潔說明用法與語感（例：「〜わりに：與…（的程度）不相稱、雖然…卻…」）。
+- usage：接續方式，條列該文法所有常見接法、每行一種（例：「動詞普通形＋わりに\\nい形容詞＋わりに\\nな形容詞な＋わりに\\n名詞の＋わりに」）。
+- examples：依 usage 的「每一種接法各造一句」（通常 2〜3 句，最多 3 句）。每句含 label（接法簡稱，如「辞書形」「た形」「名詞の」）、jp（N3 程度、貼近日常生活的日文例句）、zh（繁體中文翻譯）。
+類型規則：
 - question 類型：「每個選項」各做一張卡（四個選項就四張卡），正確答案的卡排第一張：
-  - 正確答案卡：examples 第一句用題目原句（填入正確答案），第二句自創。explanation 用繁體中文說明為什麼這題選它、其他選項為何不對。
-  - 其他選項卡：examples 兩句都自創 N3 程度例句。explanation 簡短說明這個文法的用法，以及為什麼它不適合放進這題的句子。
+  - 正確答案卡：題目原句（填入正確答案）放進對應接法的例句位置。explanation 用繁體中文說明為什麼這題選它、其他選項為何不對。
+  - 其他選項卡：例句全部自創。explanation 簡短說明為什麼它不適合放進這題的句子。
   - 若某選項只是同一文法的變化形（如時態變化）而非獨立文法點，可以不做卡。
-- passage 類型：抓截圖中出現的 N3 程度文法，examples 第一句用截圖原句。explanation 可簡短或留空字串。
-- 每張卡恰好兩個例句，第二句自創 N3 程度、貼近日常生活的例句。每句附繁體中文翻譯。
-- meaning：該文法的繁體中文意思＋接續方式（例：「〜たびに：每次…就…。接續：動辭書形／名詞の＋たびに」）。
+- passage 類型：抓截圖中出現的 N3 程度文法，截圖原句放進對應接法的例句位置，其餘接法自創例句。explanation 可留空字串。
 只輸出 JSON、不要 markdown 圍欄，格式：
-{"sourceText":"...","type":"question|passage","cards":[{"grammar":"...","meaning":"...","explanation":"...","examples":[{"jp":"...","zh":"..."},{"jp":"...","zh":"..."}]}]}`;
+{"sourceText":"...","type":"question|passage","cards":[{"grammar":"...","meaning":"...","usage":"...","explanation":"...","examples":[{"label":"...","jp":"...","zh":"..."},{"label":"...","jp":"...","zh":"..."},{"label":"...","jp":"...","zh":"..."}]}]}`;
 
 async function analyzeImage(b64,mediaType){
   const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -501,9 +507,10 @@ async function handleFiles(files){
       const srcText=out.sourceText||'';
       pendingSources.push({text:srcText,type:out.type||'passage'});
       (out.cards||[]).forEach(c=>{
-        pending.push({grammar:c.grammar||'',meaning:c.meaning||'',explanation:c.explanation||'',
-          examples:[(c.examples&&c.examples[0])||{jp:'',zh:''},(c.examples&&c.examples[1])||{jp:'',zh:''}],
-          source:srcText});
+        const exs=(c.examples||[]).slice(0,3).map(e=>({label:e.label||'',jp:e.jp||'',zh:e.zh||''}));
+        while(exs.length<3)exs.push({label:'',jp:'',zh:''});
+        pending.push({grammar:c.grammar||'',meaning:c.meaning||'',usage:c.usage||'',explanation:c.explanation||'',
+          examples:exs,source:srcText});
       });
       ok++;
     }catch(e){console.error(e);toast('辨識失敗：'+e.message);}
@@ -515,17 +522,13 @@ async function handleFiles(files){
 }
 
 function addManualCard(){
-  pending.push({grammar:'',meaning:'',explanation:'',examples:[{jp:'',zh:''},{jp:'',zh:''}],source:''});
+  pending.push({grammar:'',meaning:'',usage:'',explanation:'',examples:[{label:'',jp:'',zh:''},{label:'',jp:'',zh:''},{label:'',jp:'',zh:''}],source:''});
   renderPreview();
   setTimeout(()=>{const p=document.getElementById('preview-area');p.scrollIntoView({behavior:'smooth'});},50);
 }
 
-function pset(i,path,val){
-  const p=pending[i];if(!p)return;
-  if(path==='ex0jp')p.examples[0].jp=val;else if(path==='ex0zh')p.examples[0].zh=val;
-  else if(path==='ex1jp')p.examples[1].jp=val;else if(path==='ex1zh')p.examples[1].zh=val;
-  else p[path]=val;
-}
+function pset(i,path,val){const p=pending[i];if(p)p[path]=val;}
+function psetEx(i,k,f,val){const p=pending[i];if(p&&p.examples[k])p.examples[k][f]=val;}
 function pdel(i){pending.splice(i,1);renderPreview();}
 
 function renderPreview(){
@@ -534,14 +537,16 @@ function renderPreview(){
   let html='<h3 style="margin-bottom:4px">卡片 Preview（'+pending.length+' 張）</h3><p class="sub" style="margin-bottom:12px">可直接編輯或刪除，確認後入庫</p>';
   pending.forEach((p,i)=>{
     html+='<div class="pcard"><div class="head"><b>卡 '+(i+1)+'</b><button class="btn small" style="background:var(--hard)" onclick="pdel('+i+')">刪除</button></div>'
-      +'<div class="plabel">文法</div><input type="text" value="'+esc(p.grammar)+'" oninput="pset('+i+',\'grammar\',this.value)">'
-      +'<div class="plabel">意思／接續（繁中）</div><textarea oninput="pset('+i+',\'meaning\',this.value)">'+esc(p.meaning)+'</textarea>'
-      +'<div class="plabel">解析（為什麼是這個答案，可留空）</div><textarea oninput="pset('+i+',\'explanation\',this.value)">'+esc(p.explanation)+'</textarea>'
-      +'<div class="plabel">例句 1（日）</div><textarea oninput="pset('+i+',\'ex0jp\',this.value)">'+esc(p.examples[0].jp)+'</textarea>'
-      +'<div class="plabel">例句 1（中）</div><textarea oninput="pset('+i+',\'ex0zh\',this.value)">'+esc(p.examples[0].zh)+'</textarea>'
-      +'<div class="plabel">例句 2（日）</div><textarea oninput="pset('+i+',\'ex1jp\',this.value)">'+esc(p.examples[1].jp)+'</textarea>'
-      +'<div class="plabel">例句 2（中）</div><textarea oninput="pset('+i+',\'ex1zh\',this.value)">'+esc(p.examples[1].zh)+'</textarea>'
-      +'</div>';
+      +'<div class="plabel">① 文法</div><input type="text" value="'+esc(p.grammar)+'" oninput="pset('+i+',\'grammar\',this.value)">'
+      +'<div class="plabel">① 中文意思</div><textarea oninput="pset('+i+',\'meaning\',this.value)">'+esc(p.meaning)+'</textarea>'
+      +'<div class="plabel">② 接續（每行一種接法）</div><textarea rows="3" oninput="pset('+i+',\'usage\',this.value)">'+esc(p.usage||'')+'</textarea>'
+      +'<div class="plabel">解析（為什麼是這個答案，可留空）</div><textarea oninput="pset('+i+',\'explanation\',this.value)">'+esc(p.explanation)+'</textarea>';
+    p.examples.forEach((e,k)=>{
+      html+='<div class="plabel">③ 例句 '+(k+1)+' 接法標籤</div><input type="text" value="'+esc(e.label)+'" oninput="psetEx('+i+','+k+',\'label\',this.value)" placeholder="例：辞書形、名詞の">'
+        +'<div class="plabel">例句 '+(k+1)+'（日）</div><textarea oninput="psetEx('+i+','+k+',\'jp\',this.value)">'+esc(e.jp)+'</textarea>'
+        +'<div class="plabel">例句 '+(k+1)+'（中）</div><textarea oninput="psetEx('+i+','+k+',\'zh\',this.value)">'+esc(e.zh)+'</textarea>';
+    });
+    html+='</div>';
   });
   html+='<div style="display:flex;gap:10px;margin-top:6px"><button class="btn full" onclick="confirmPending()">✅ 全部入庫（'+pending.length+' 張）</button><button class="btn gray" onclick="discardPending()">捨棄</button></div>';
   el.innerHTML=html;
@@ -552,7 +557,7 @@ function confirmPending(){
   let n=0;
   pending.forEach(p=>{
     if(!p.grammar.trim())return;
-    state.cards.push({id:uid(),grammar:p.grammar.trim(),meaning:p.meaning,explanation:p.explanation,
+    state.cards.push({id:uid(),grammar:p.grammar.trim(),meaning:p.meaning,usage:p.usage||'',explanation:p.explanation,
       examples:p.examples.filter(e=>e.jp),source:p.source,mastery:'new',createdAt:now,updatedAt:now,lastReviewed:0,reviewCount:0});
     n++;
   });
@@ -600,6 +605,7 @@ function openCard(id){
   +'<h3>'+esc(c.grammar)+' <button class="speak" onclick="speak('+attr(c.grammar)+')">🔊</button></h3>'
   +'<span class="badge b-'+m+'">'+MASTERY[m].label+'</span> <span class="sub">複習 '+(c.reviewCount||0)+' 次</span>'
   +'<div class="answer" style="margin-top:12px"><div class="meaning">'+esc(c.meaning)+'</div>'
+  +usageHtml(c)
   +(c.explanation?'<div class="expl">💡 '+esc(c.explanation)+'</div>':'')
   +exampleHtml(c.examples)
   +(c.source?'<div class="src">📷 原文：'+esc(c.source)+'</div>':'')
@@ -611,16 +617,20 @@ function closeModal(){document.getElementById('modal-root').innerHTML='';}
 function delCard(id){if(!confirm('刪除這張卡？'))return;deleteItem('cards',id);closeModal();renderLibrary();renderHome();}
 function editCard(id){
   const c=state.cards.find(x=>x.id===id);if(!c)return;
-  while(c.examples.length<2)c.examples.push({jp:'',zh:''});
+  while(c.examples.length<3)c.examples.push({label:'',jp:'',zh:''});
+  let exHtml='';
+  c.examples.slice(0,3).forEach((e,k)=>{
+    exHtml+='<div class="plabel">例句 '+(k+1)+' 接法標籤</div><input type="text" id="e-'+k+'l" value="'+esc(e.label||'')+'" placeholder="例：辞書形、名詞の">'
+      +'<div class="plabel">例句 '+(k+1)+'（日）</div><textarea id="e-'+k+'j">'+esc(e.jp)+'</textarea>'
+      +'<div class="plabel">例句 '+(k+1)+'（中）</div><textarea id="e-'+k+'z">'+esc(e.zh)+'</textarea>';
+  });
   document.getElementById('modal-root').innerHTML=
   '<div class="modal-bg"><div class="modal"><h3>編輯卡片</h3><div class="pcard" style="margin-top:12px">'
-  +'<div class="plabel">文法</div><input type="text" id="e-g" value="'+esc(c.grammar)+'">'
-  +'<div class="plabel">意思／接續</div><textarea id="e-m">'+esc(c.meaning)+'</textarea>'
+  +'<div class="plabel">① 文法</div><input type="text" id="e-g" value="'+esc(c.grammar)+'">'
+  +'<div class="plabel">① 中文意思</div><textarea id="e-m">'+esc(c.meaning)+'</textarea>'
+  +'<div class="plabel">② 接續（每行一種接法）</div><textarea id="e-u" rows="3">'+esc(c.usage||'')+'</textarea>'
   +'<div class="plabel">解析</div><textarea id="e-x">'+esc(c.explanation||'')+'</textarea>'
-  +'<div class="plabel">例句 1（日）</div><textarea id="e-0j">'+esc(c.examples[0].jp)+'</textarea>'
-  +'<div class="plabel">例句 1（中）</div><textarea id="e-0z">'+esc(c.examples[0].zh)+'</textarea>'
-  +'<div class="plabel">例句 2（日）</div><textarea id="e-1j">'+esc(c.examples[1].jp)+'</textarea>'
-  +'<div class="plabel">例句 2（中）</div><textarea id="e-1z">'+esc(c.examples[1].zh)+'</textarea>'
+  +exHtml
   +'<div class="plabel">理解程度</div><select id="e-s">'
   +['new','hard','medium','easy'].map(m=>'<option value="'+m+'"'+(mast(c)===m?' selected':'')+'>'+MASTERY[m].label+'</option>').join('')
   +'</select></div><div class="mrow"><button class="btn" onclick="saveCardEdit(\''+c.id+'\')">💾 儲存</button><button class="btn gray" onclick="openCard(\''+c.id+'\')">取消</button></div></div></div>';
@@ -628,8 +638,8 @@ function editCard(id){
 function saveCardEdit(id){
   const c=state.cards.find(x=>x.id===id);if(!c)return;
   const v=i=>document.getElementById(i).value;
-  c.grammar=v('e-g');c.meaning=v('e-m');c.explanation=v('e-x');
-  c.examples=[{jp:v('e-0j'),zh:v('e-0z')},{jp:v('e-1j'),zh:v('e-1z')}].filter(e=>e.jp);
+  c.grammar=v('e-g');c.meaning=v('e-m');c.usage=v('e-u');c.explanation=v('e-x');
+  c.examples=[0,1,2].map(k=>({label:v('e-'+k+'l'),jp:v('e-'+k+'j'),zh:v('e-'+k+'z')})).filter(e=>e.jp);
   c.mastery=v('e-s');c.updatedAt=Date.now();
   saveLocal();closeModal();renderLibrary();renderHome();toast('已儲存');
 }
@@ -684,15 +694,19 @@ function clearAll(){
 function loadDemo(){
   const now=Date.now();
   const demo=[
-    {grammar:'〜たびに',meaning:'每次…就…。接續：動辭書形／名詞の＋たびに',explanation:'「たびに」表示「每次做某事都會發生後項」。選項「〜ながら」表同時進行、「〜まま」表狀態持續，語意不合。',
-     examples:[{jp:'この写真を見るたびに、日本の旅行を思い出します。',zh:'每次看到這張照片，就會想起日本的旅行。'},{jp:'彼に会うたびに、元気をもらいます。',zh:'每次見到他，都會得到活力。'}],
-     source:'この写真を見る（　）、日本の旅行を思い出します。 1.ながら 2.たびに 3.まま 4.ばかり'},
-    {grammar:'〜ばかりでなく',meaning:'不僅…而且…。接續：動普通形／い形／な形な／名詞＋ばかりでなく',explanation:'',
-     examples:[{jp:'彼は英語ばかりでなく、フランス語も話せます。',zh:'他不僅會英語，也會說法語。'},{jp:'この店は安いばかりでなく、味もいいです。',zh:'這家店不僅便宜，味道也好。'}],
-     source:'彼は英語ばかりでなく、フランス語も話せます。'},
-    {grammar:'〜ようになる',meaning:'變得會…／開始…（能力或習慣的變化）。接續：動辭書形／可能形＋ようになる',explanation:'',
-     examples:[{jp:'毎日練習して、漢字が読めるようになりました。',zh:'每天練習後，變得會讀漢字了。'},{jp:'日本のニュースを聞くようになりました。',zh:'開始會聽日本的新聞了。'}],
-     source:'毎日練習して、漢字が読めるようになりました。'}
+    {grammar:'〜さえ〜ない',meaning:'連…都（沒有／不）…。舉出極端的例子，強調「連最基本的都達不到」，其他更不用說。',
+     usage:'名詞（＋助詞）＋さえ〜ない\n動詞ます形去ます＋さえしない\n動詞て形＋さえいない',
+     explanation:'「さえ」舉極端例強調全面否定。「こそ」表強調肯定、「だけ」表限定、「ばかり」表淨是，語意皆不合。',
+     examples:[{label:'名詞',jp:'彼は自分の名前さえ書けない。',zh:'他連自己的名字都不會寫。'},{label:'ます形',jp:'彼は私の話を聞きさえしなかった。',zh:'他連聽都不聽我說。'},{label:'て形',jp:'弟は宿題を始めてさえいない。',zh:'弟弟連作業都還沒開始寫。'}],
+     source:'彼は自分の名前（　）書けない。 1.こそ 2.さえ 3.だけ 4.ばかり'},
+    {grammar:'〜ないと',meaning:'不…的話（就…）。表示「如果不做前項，就會有不好的結果」；口語常省略後半，表示「必須…」（＝ないといけない）。',
+     usage:'動詞ない形＋と\nい形容詞 〜くない＋と\nな形容詞／名詞 〜でない＋と',explanation:'',
+     examples:[{label:'動詞',jp:'早く寝ないと、明日起きられませんよ。',zh:'不早點睡的話，明天會起不來喔。'},{label:'い形',jp:'値段が安くないと、学生は買えない。',zh:'價格不便宜的話，學生買不起。'},{label:'名詞',jp:'会員でないと、このジムは利用できません。',zh:'不是會員的話，就不能使用這間健身房。'}],
+     source:'早く寝ないと、明日起きられませんよ。'},
+    {grammar:'〜ついでに',meaning:'順便…。做前項（主要動作）的時候，順便做後項。',
+     usage:'動詞辞書形＋ついでに（要去做的時候順便）\n動詞た形＋ついでに（做了之後順便）\n名詞＋の＋ついでに',explanation:'',
+     examples:[{label:'辞書形',jp:'コンビニへ行くついでに、この手紙を出してきてくれない？',zh:'你去便利商店的時候，順便幫我寄這封信好嗎？'},{label:'た形',jp:'実家に帰ったついでに、高校の友達に会ってきた。',zh:'回老家時順便見了高中朋友。'},{label:'名詞の',jp:'散歩のついでに、パン屋で朝ご飯を買った。',zh:'散步時順便在麵包店買了早餐。'}],
+     source:'散歩のついでに、パン屋で朝ご飯を買った。'}
   ];
   demo.forEach((d,i)=>{
     state.cards.push(Object.assign({id:uid()+i,mastery:'new',createdAt:now,updatedAt:now,lastReviewed:0,reviewCount:0},d));
