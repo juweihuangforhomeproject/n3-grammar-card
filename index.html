@@ -306,7 +306,10 @@ function mergeData(remote){
   const rrl=remote.meta&&remote.meta.reviewLog||{};
   Object.keys(rrl).forEach(k=>{rl[k]=Math.max(rl[k]||0,rrl[k]);});
   const vs=Object.assign({},state.meta.visits,remote.meta&&remote.meta.visits||{});
-  state.meta={reviewLog:rl,deleted:del,visits:vs};
+  const pl=Object.assign({},state.meta.practiceLog);
+  const rpl=remote.meta&&remote.meta.practiceLog||{};
+  Object.keys(rpl).forEach(k=>{pl[k]=Math.max(pl[k]||0,rpl[k]);});
+  state.meta={reviewLog:rl,deleted:del,visits:vs,practiceLog:pl};
 }
 function deleteItem(arr,id){
   const i=state[arr].findIndex(x=>x.id===id);
@@ -358,6 +361,63 @@ function streakDays(){
   return n;
 }
 
+/* ============ 練習計時器 ============ */
+let timerInt=null;
+function getTimer(){try{return JSON.parse(localStorage.getItem('n3_timer'));}catch(e){return null;}}
+function setTimer(t){if(t)localStorage.setItem('n3_timer',JSON.stringify(t));else localStorage.removeItem('n3_timer');}
+function practiceToday(){return (state.meta.practiceLog||{})[todayStr()]||0;}
+function startTimer(mins){setTimer({end:Date.now()+mins*60000,mins:mins,date:todayStr()});tickTimer();renderHome();}
+function cancelTimer(){if(!confirm('取消這次計時？'))return;setTimer(null);clearInterval(timerInt);timerInt=null;renderHome();}
+function pauseTimer(){
+  const t=getTimer();if(!t||t.pausedLeft)return;
+  t.pausedLeft=Math.max(0,t.end-Date.now());delete t.end;
+  setTimer(t);clearInterval(timerInt);timerInt=null;renderHome();
+}
+function resumeTimer(){
+  const t=getTimer();if(!t||!t.pausedLeft)return;
+  t.end=Date.now()+t.pausedLeft;delete t.pausedLeft;
+  setTimer(t);tickTimer();renderHome();
+}
+function checkTimer(){
+  const t=getTimer();
+  if(!t||t.pausedLeft)return;
+  if(Date.now()>=t.end){
+    setTimer(null);clearInterval(timerInt);timerInt=null;
+    if(!state.meta.practiceLog)state.meta.practiceLog={};
+    state.meta.practiceLog[t.date]=(state.meta.practiceLog[t.date]||0)+t.mins;
+    saveLocal();toast('🎉 '+t.mins+' 分鐘練習完成，えらい！');
+    if(document.getElementById('page-home').classList.contains('on'))renderHome();
+  }
+}
+function tickTimer(){
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    checkTimer();
+    const el=document.getElementById('timerLeft'),t=getTimer();
+    if(el&&t){const s=Math.max(0,Math.ceil((t.end-Date.now())/1000));el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+  },1000);
+}
+function timerPanelHtml(){
+  const t=getTimer(),done=practiceToday();
+  let h='<div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>⏱️ 每日練習計時</b>'
+    +(done?'<span class="sub">今天已完成 '+done+' 分鐘</span>':'')+'</div>';
+  if(t){
+    const paused=!!t.pausedLeft;
+    const s=Math.max(0,Math.ceil((paused?t.pausedLeft:t.end-Date.now())/1000));
+    h+='<div id="timerLeft" style="text-align:center;font-size:42px;font-weight:800;margin:8px 0;color:var(--accent2);'+(paused?'opacity:.5':'')+'">'+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'</div>'
+      +'<p class="sub" style="text-align:center;margin-bottom:10px">'+(paused?'⏸️ 已暫停':'計時中，去複習卡片吧！倒數結束就算完成今天的練習')+'</p>'
+      +'<div style="display:flex;gap:8px">'
+      +(paused?'<button class="btn" style="flex:1" onclick="resumeTimer()">▶️ 繼續</button>':'<button class="btn ghost" style="flex:1" onclick="pauseTimer()">⏸️ 暫停</button>')
+      +'<button class="btn gray" style="flex:1" onclick="cancelTimer()">✕ 取消</button></div>';
+  }else{
+    h+=(done?'<p style="margin:8px 0 10px">✅ 今日練習達成！還想加練：</p>':'<p class="sub" style="margin:8px 0 10px">選一個時間開始今天的練習</p>')
+      +'<div style="display:flex;gap:8px">'
+      +[10,15,30].map(m=>'<button class="btn '+(done?'ghost':'')+'" style="flex:1" onclick="startTimer('+m+')">'+m+' 分鐘</button>').join('')
+      +'</div>';
+  }
+  return h+'</div>';
+}
+
 /* ============ 今日複習 ============ */
 let queue=[],qIdx=0,flipped=false,sessionOn=false,freeMode=false;
 function reviewedToday(){return state.meta.reviewLog[todayStr()]||0;}
@@ -396,6 +456,7 @@ function renderHome(){
   }
   if(total>0)html+='<button class="btn ghost full" style="margin-top:10px" onclick="startFree()">🔁 自由加練（不限次數，不計入每日進度）</button>';
   html+='</div>';
+  html+=timerPanelHtml();
   if(total>0){
     const cnt={easy:0,medium:0,hard:0,new:0};
     state.cards.forEach(c=>cnt[mast(c)]++);
@@ -731,6 +792,8 @@ document.addEventListener('paste',e=>{
 
 loadLocal();
 markVisit();
+checkTimer();
+if(getTimer())tickTimer();
 renderCountdown();
 renderAll();
 initSupabase();
