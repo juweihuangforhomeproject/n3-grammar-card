@@ -537,7 +537,7 @@ function heroTimerHtml(){
 }
 
 /* ============ 今日複習 ============ */
-let queue=[],qIdx=0,flipped=false,sessionOn=false,freeMode=false;
+let queue=[],qIdx=0,flipped=false,sessionOn=false,freeMode=false,sessionLabel='';
 function reviewedToday(){return state.meta.reviewLog[todayStr()]||0;}
 function daysSince(ts){
   if(!ts)return 9999;
@@ -554,7 +554,7 @@ function buildQueue(){
     .sort((a,b)=>MASTERY[mast(a)].pr-MASTERY[mast(b)].pr||(a.lastReviewed||0)-(b.lastReviewed||0))
     .slice(0,remain);
 }
-function chip(m,n){return '<span class="chip"><span class="dot" style="background:var(--'+m+')"></span>'+MASTERY[m].label+'&nbsp;'+n+'</span>';}
+function chip(m,n){return '<span class="chip" style="cursor:pointer" onclick="chipReview(\''+m+'\')"><span class="dot" style="background:var(--'+m+')"></span>'+MASTERY[m].label+'&nbsp;'+n+'</span>';}
 function renderHome(){
   renderCountdown();
   document.getElementById('hero-timer').innerHTML=heroTimerHtml();
@@ -589,7 +589,35 @@ function startReview(){queue=buildQueue();if(!queue.length)return;qIdx=0;flipped
 function startFree(){
   queue=state.cards.slice().sort((a,b)=>MASTERY[mast(a)].pr-MASTERY[mast(b)].pr||(a.lastReviewed||0)-(b.lastReviewed||0));
   if(!queue.length)return;
-  qIdx=0;flipped=false;sessionOn=true;freeMode=true;renderReviewModal();
+  qIdx=0;flipped=false;sessionOn=true;freeMode=true;sessionLabel='🔁 自由加練';renderReviewModal();
+}
+function chipReview(m){
+  const cards=state.cards.filter(c=>mast(c)===m);
+  if(!cards.length){toast('「'+MASTERY[m].label+'」目前沒有卡片');return;}
+  if(cards.length<=10){startCategory(m,cards);return;}
+  document.getElementById('modal-root').innerHTML=
+  '<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">'
+  +'<h3><span class="badge b-'+m+'">'+MASTERY[m].label+'</span> 共 '+cards.length+' 張</h3>'
+  +'<p class="sub" style="margin:8px 0 16px">超過 10 張，要複習哪 10 張？</p>'
+  +'<button class="btn full" style="margin-bottom:10px" onclick="startCategory(\''+m+'\',null,\'new\')">最新 10 張</button>'
+  +'<button class="btn full" style="margin-bottom:10px" onclick="startCategory(\''+m+'\',null,\'old\')">最舊 10 張</button>'
+  +'<button class="btn full" style="margin-bottom:10px" onclick="startCategory(\''+m+'\',null,\'rand\')">隨機 10 張</button>'
+  +'<button class="btn gray full" onclick="closeModal()">取消</button></div></div>';
+}
+function startCategory(m,cards,pick){
+  if(!cards){
+    cards=state.cards.filter(c=>mast(c)===m);
+    if(pick==='new')cards=cards.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,10);
+    else if(pick==='old')cards=cards.slice().sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).slice(0,10);
+    else{
+      cards=cards.slice();
+      for(let i=cards.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=cards[i];cards[i]=cards[j];cards[j]=t;}
+      cards=cards.slice(0,10);
+    }
+  }
+  queue=cards;qIdx=0;flipped=false;sessionOn=true;freeMode=true;
+  sessionLabel='🎯 '+MASTERY[m].label+'專練';
+  renderReviewModal();
 }
 function endSession(){sessionOn=false;freeMode=false;closeModal();renderHome();}
 function exampleHtml(exs){
@@ -600,7 +628,7 @@ function attr(s){return "'"+String(s==null?'':s).replace(/\\/g,'\\\\').replace(/
 function renderReviewModal(){
   const c=queue[qIdx];
   const pos='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="sub">'
-    +(freeMode?'🔁 自由加練 ':'')+'第 '+(qIdx+1)+' / '+queue.length+' 張'
+    +(freeMode?sessionLabel+' ':'')+'第 '+(qIdx+1)+' / '+queue.length+' 張'
     +(freeMode?'':' · 今日已完成 '+reviewedToday()+' 張')
     +'</span><button class="btn gray small" onclick="endSession()">✕ 結束</button></div>';
   let inner;
