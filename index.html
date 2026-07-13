@@ -9,10 +9,10 @@
 <title>N3 文法卡</title>
 <style>
 :root{
-  --bg:#faf7f2; --card:#ffffff; --ink:#2b2b2b; --sub:#8a8378;
-  --accent:#d0553e; --accent2:#33536e; --line:#eae4da;
-  --easy:#4c9a6f; --medium:#d99a2b; --hard:#c8503c; --new:#8a8378;
-  --shadow:0 2px 10px rgba(60,50,30,.08);
+  --bg:#fbfbfb; --card:#ffffff; --ink:#222222; --sub:#717171;
+  --accent:#FF385C; --accent2:#B02952; --line:#ebebeb;
+  --easy:#00A699; --medium:#E8A200; --hard:#D7263D; --new:#9b9b9b;
+  --shadow:0 6px 16px rgba(0,0,0,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overscroll-behavior:none}
@@ -24,30 +24,40 @@ h1{font-size:20px}
 .sub{color:var(--sub);font-size:13px}
 
 /* top bar */
-.topbar{display:flex;align-items:baseline;justify-content:space-between;padding:14px 16px 0}
-.topbar .brand{font-weight:700;font-size:18px}
-.sync{font-size:12px;color:var(--sub)}
-.sync.on{color:var(--easy)}
+.topbar{display:flex;align-items:center;gap:9px;padding:16px 18px 4px}
+.topbar .brand{font-weight:800;font-size:20px}
+.sync{font-size:11.5px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:3px 10px;background:var(--card)}
+.sync.on{color:var(--easy);border-color:#bfe8e3}
 
-/* countdown */
-.count{background:linear-gradient(135deg,var(--accent2),#24405a);color:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
-.count .big{font-size:34px;font-weight:800;line-height:1.1}
-.count .big span{font-size:16px;font-weight:500;opacity:.85}
-.count .row{display:flex;justify-content:space-between;align-items:flex-end}
-.count .label{font-size:13px;opacity:.85;margin-bottom:6px}
+/* hero: countdown + timer */
+.hero{background:linear-gradient(140deg,#EE6E77 0%,#D93A66 60%,#C22A5C 100%);color:#fff;border-radius:24px;padding:22px 20px;margin-bottom:14px;box-shadow:0 10px 24px rgba(201,42,94,.28)}
+.hlabel{font-size:14px;font-weight:700;opacity:.95}
+.hnums{display:flex;align-items:baseline;margin:6px 0 2px}
+.hbig{font-size:54px;font-weight:800;line-height:1}
+.hunit{font-size:18px;font-weight:700;margin:0 12px 0 6px}
+.hweeks{font-size:18px;font-weight:700;opacity:.95}
+.tpills{display:flex;gap:10px}
+.tpill{flex:1;background:rgba(255,255,255,.24);border:none;border-radius:99px;padding:12px 0;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.streakline{font-size:14.5px;font-weight:700;margin:0 6px 16px}
 
 /* generic card */
-.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
-.btn{display:inline-block;border:none;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.btn{display:inline-block;border:none;border-radius:14px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
 .btn.full{width:100%;text-align:center}
-.btn.ghost{background:transparent;color:var(--accent2);border:1.5px solid var(--accent2)}
+.btn.big{padding:16px;font-size:16px;border-radius:16px;margin-bottom:10px}
+.btn.ghost{background:var(--card);color:var(--ink);border:1.5px solid #222}
 .btn.small{padding:7px 12px;font-size:13px;border-radius:9px}
-.btn.gray{background:#eee7dc;color:var(--ink)}
+.btn.gray{background:#f0f0f0;color:var(--ink)}
 .btn:disabled{opacity:.45;cursor:default}
 
 /* progress */
-.prog{height:8px;background:#efe9df;border-radius:99px;overflow:hidden;margin:10px 0}
-.prog i{display:block;height:100%;background:var(--easy);border-radius:99px;transition:width .3s}
+.prog{height:8px;background:#f0f0f0;border-radius:99px;overflow:hidden;margin:10px 0}
+.prog i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+
+/* overview chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:99px;padding:7px 13px;font-size:13.5px;font-weight:600;background:var(--card)}
+.chip .dot{width:8px;height:8px;border-radius:50%}
 
 /* review card */
 .rcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 20px;box-shadow:var(--shadow);min-height:220px;display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer}
@@ -59,7 +69,7 @@ h1{font-size:20px}
 .ex{border-top:1px dashed var(--line);padding:10px 0;font-size:15px;line-height:1.65}
 .ex .zh{color:var(--sub);font-size:13px}
 .exlb{display:inline-block;font-size:11px;font-weight:700;color:var(--accent2);border:1px solid var(--accent2);border-radius:6px;padding:1px 7px;margin-bottom:3px;vertical-align:2px}
-.usage{background:#eef3f7;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.75;margin-bottom:10px;color:var(--accent2);white-space:pre-wrap}
+.usage{background:#FDF0F3;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.75;margin-bottom:10px;color:var(--accent2);white-space:pre-wrap}
 .src{font-size:12.5px;color:var(--sub);background:#f6f1e8;border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5;white-space:pre-wrap}
 .speak{background:none;border:none;cursor:pointer;font-size:17px;padding:2px 6px;vertical-align:middle}
 .rates{display:flex;gap:10px;margin-top:14px}
@@ -84,7 +94,7 @@ h1{font-size:20px}
 /* library */
 .subtabs{display:flex;gap:8px;margin-bottom:14px}
 .subtabs button{flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-size:14.5px;font-weight:600;cursor:pointer;color:var(--sub)}
-.subtabs button.on{border-color:var(--accent2);color:var(--accent2);background:#eef3f7}
+.subtabs button.on{border-color:var(--accent2);color:var(--accent2);background:#FDF0F3}
 .search{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-size:15px;background:var(--card);margin-bottom:12px;font-family:inherit}
 .group-title{font-size:14px;font-weight:800;margin:16px 0 8px;display:flex;align-items:center;gap:8px}
 .litem{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:var(--shadow)}
@@ -95,10 +105,8 @@ h1{font-size:20px}
 .empty{text-align:center;color:var(--sub);padding:36px 10px;font-size:14.5px}
 
 /* modal */
-.modal-bg{position:fixed;inset:0;background:rgba(40,30,20,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
-@media(min-width:600px){.modal-bg{align-items:center}}
-.modal{background:var(--bg);border-radius:20px 20px 0 0;max-width:520px;width:100%;max-height:85vh;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 18px calc(30px + env(safe-area-inset-bottom))}
-@media(min-width:600px){.modal{border-radius:20px}}
+.modal-bg{position:fixed;inset:0;background:rgba(30,25,25,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--bg);border-radius:24px;max-width:520px;width:100%;max-height:85vh;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 18px 24px;box-shadow:0 18px 44px rgba(0,0,0,.28)}
 .modal h3{font-size:20px;margin-bottom:4px}
 .mrow{display:flex;gap:10px;margin-top:16px}
 .mrow .btn{flex:1}
@@ -112,7 +120,7 @@ h1{font-size:20px}
 /* bottom nav */
 nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,253,249,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
 nav button{flex:1;background:none;border:none;padding:9px 0 7px;font-size:11px;color:var(--sub);cursor:pointer;font-family:inherit}
-nav button .ic{display:block;font-size:21px;margin-bottom:2px}
+nav button svg{width:22px;height:22px;display:block;margin:0 auto 3px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav button.on{color:var(--accent)}
 .page{display:none}.page.on{display:block}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#333;color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;max-width:88%;text-align:center}
@@ -121,16 +129,18 @@ nav button.on{color:var(--accent)}
 </head>
 <body>
 <div id="scroll">
-<div class="topbar"><div class="brand">🌸 N3 文法卡</div><div class="sync" id="syncStat">本機模式</div></div>
+<div class="topbar"><div class="brand">N3 文法卡</div><div class="sync" id="syncStat">本機模式</div></div>
 
 <div class="wrap">
   <!-- 今日複習 -->
   <section class="page on" id="page-home">
-    <div class="count">
-      <div class="label">JLPT N3 倒數 · 2026/12/01</div>
-      <div class="row"><div class="big" id="cd-days">–<span> 天</span></div><div class="big" id="cd-weeks" style="font-size:24px">–<span> 週</span></div></div>
-      <div class="label" id="streak" style="margin-top:10px;margin-bottom:0"></div>
+    <div class="hero">
+      <div class="hlabel">JLPT N3 倒數 2026/12/01</div>
+      <div class="hnums"><span class="hbig" id="cd-days">–</span><span class="hunit">天</span><span class="hweeks" id="cd-weeks">–</span></div>
+      <div class="hlabel" style="margin-top:18px">每日練習計時</div>
+      <div id="hero-timer" style="margin-top:10px"></div>
     </div>
+    <div class="streakline" id="streak"></div>
     <div id="home-body"></div>
   </section>
 
@@ -198,9 +208,20 @@ nav button.on{color:var(--accent)}
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
     </div>
     <div class="panel">
-      <div class="plabel" style="margin-bottom:8px">語音測試</div>
+      <div class="plabel" style="margin-bottom:8px">發音設定</div>
+      <div class="field"><label>Gemini API Key（真人感發音，選填）</label>
+        <input type="password" id="setGKey" placeholder="AIza...">
+        <div class="note">到 aistudio.google.com/apikey 免費申請。填了就用 Gemini 真人感語音，額度用完或失敗時自動改用裝置內建語音；留空則一律用內建語音。</div></div>
+      <div class="field"><label>Gemini 語音</label>
+        <select id="setGVoice">
+          <option value="Kore">Kore（女聲，沉穩）</option>
+          <option value="Leda">Leda（女聲，年輕）</option>
+          <option value="Aoede">Aoede（女聲，輕快）</option>
+          <option value="Puck">Puck（男聲，活潑）</option>
+          <option value="Charon">Charon（男聲，低沉）</option>
+        </select></div>
       <button class="btn gray small" onclick="speak('日本語の文法を勉強しましょう')">🔊 測試日文發音</button>
-      <div class="note">使用裝置內建語音。iPhone 若無聲，請確認未開靜音鍵，並到 設定→輔助使用→朗讀內容 下載日文語音。</div>
+      <div class="note">記得先按上方「儲存設定」再測試。iPhone 用內建語音若無聲，請關閉靜音鍵，並到 設定→輔助使用→朗讀內容 下載日文語音。</div>
     </div>
     <div class="panel">
       <button class="btn small" style="background:var(--hard)" onclick="clearAll()">🗑️ 清除全部資料</button>
@@ -214,10 +235,10 @@ nav button.on{color:var(--accent)}
 <div class="toast" id="toast"></div>
 
 <nav>
-  <button id="nav-home" class="on" onclick="go('home')"><span class="ic">📚</span>今日複習</button>
-  <button id="nav-add" onclick="go('add')"><span class="ic">➕</span>新增</button>
-  <button id="nav-lib" onclick="go('lib')"><span class="ic">🗂️</span>Library</button>
-  <button id="nav-set" onclick="go('set')"><span class="ic">⚙️</span>設定</button>
+  <button id="nav-home" class="on" onclick="go('home')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>今日複習</button>
+  <button id="nav-add" onclick="go('add')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增</button>
+  <button id="nav-lib" onclick="go('lib')"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>Library</button>
+  <button id="nav-set" onclick="go('set')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>設定</button>
 </nav>
 
 <script>
@@ -229,7 +250,7 @@ function dmax(){const n=parseInt(settings.dailyMax,10);return n>0?n:10;}
 const MASTERY = {hard:{label:'記不住',cls:'hard',pr:0},medium:{label:'記憶中',cls:'medium',pr:1},new:{label:'新卡',cls:'new',pr:2},easy:{label:'簡單',cls:'easy',pr:3}};
 
 let state = {cards:[],sources:[],meta:{reviewLog:{},deleted:{},visits:{}}};
-let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:'',extra:'',dailyMax:10,autoSpeak:true};
+let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:'',extra:'',dailyMax:10,autoSpeak:true,geminiKey:'',geminiVoice:'Kore'};
 let sb=null, applyingRemote=false, saveTimer=null, lastPushStamp=0;
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
@@ -322,12 +343,56 @@ function deleteItem(arr,id){
 let jaVoice=null;
 function pickVoice(){const vs=speechSynthesis.getVoices();jaVoice=vs.find(v=>v.lang==='ja-JP')||vs.find(v=>v.lang&&v.lang.startsWith('ja'))||null;}
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
-function speak(text){
+function speakLocal(text){
   if(!('speechSynthesis' in window)){toast('此裝置不支援語音');return;}
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.lang='ja-JP';if(jaVoice)u.voice=jaVoice;u.rate=0.88;
   speechSynthesis.speak(u);
+}
+/* Gemini TTS（真人感發音）*/
+const player=new Audio();
+let audioUnlocked=false,audioCache={},ttsBusy=false;
+document.addEventListener('click',()=>{
+  if(audioUnlocked)return;audioUnlocked=true;
+  player.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+  player.play().catch(()=>{});
+},{once:true});
+function pcmToWav(b64){
+  const bin=atob(b64),n=bin.length,rate=24000;
+  const buf=new ArrayBuffer(44+n),v=new DataView(buf);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVE');w(12,'fmt ');
+  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
+  w(36,'data');v.setUint32(40,n,true);
+  for(let i=0;i<n;i++)v.setUint8(44+i,bin.charCodeAt(i));
+  return new Blob([buf],{type:'audio/wav'});
+}
+function playBlob(blob){player.pause();player.src=URL.createObjectURL(blob);player.play().catch(()=>{});}
+async function speakGemini(text){
+  const key=settings.geminiVoice+'|'+text;
+  if(audioCache[key]){playBlob(audioCache[key]);return;}
+  if(ttsBusy)return;ttsBusy=true;
+  try{
+    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key='+encodeURIComponent(settings.geminiKey),{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:text}]}],
+        generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:settings.geminiVoice||'Kore'}}}}})
+    });
+    if(!res.ok)throw new Error('TTS '+res.status);
+    const data=await res.json();
+    const b64=data.candidates[0].content.parts[0].inlineData.data;
+    const blob=pcmToWav(b64);
+    audioCache[key]=blob;
+    playBlob(blob);
+  }finally{ttsBusy=false;}
+}
+function speak(text){
+  if(!text)return;
+  if(settings.geminiKey){
+    speakGemini(text).catch(e=>{console.error('gemini tts',e);speakLocal(text);});
+  }else speakLocal(text);
 }
 
 /* ============ nav / countdown ============ */
@@ -345,8 +410,8 @@ function go(p){
 function renderCountdown(){
   const now=new Date();now.setHours(0,0,0,0);
   const days=Math.max(0,Math.round((TARGET-now)/86400000));
-  document.getElementById('cd-days').innerHTML=days+'<span> 天</span>';
-  document.getElementById('cd-weeks').innerHTML=Math.floor(days/7)+'<span> 週'+(days%7?'＋'+days%7+'天':'')+'</span>';
+  document.getElementById('cd-days').textContent=days;
+  document.getElementById('cd-weeks').textContent=Math.floor(days/7)+' 週'+(days%7?' + '+days%7+' 天':'');
   const n=streakDays();
   document.getElementById('streak').textContent=n>=2?'🔥 已連續學習 '+n+' 天，繼續保持！':'🔥 今天也來報到了！';
 }
@@ -397,25 +462,21 @@ function tickTimer(){
     if(el&&t){const s=Math.max(0,Math.ceil((t.end-Date.now())/1000));el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
   },1000);
 }
-function timerPanelHtml(){
+function heroTimerHtml(){
   const t=getTimer(),done=practiceToday();
-  let h='<div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>⏱️ 每日練習計時</b>'
-    +(done?'<span class="sub">今天已完成 '+done+' 分鐘</span>':'')+'</div>';
   if(t){
     const paused=!!t.pausedLeft;
     const s=Math.max(0,Math.ceil((paused?t.pausedLeft:t.end-Date.now())/1000));
-    h+='<div id="timerLeft" style="text-align:center;font-size:42px;font-weight:800;margin:8px 0;color:var(--accent2);'+(paused?'opacity:.5':'')+'">'+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'</div>'
-      +'<p class="sub" style="text-align:center;margin-bottom:10px">'+(paused?'⏸️ 已暫停':'計時中，去複習卡片吧！倒數結束就算完成今天的練習')+'</p>'
-      +'<div style="display:flex;gap:8px">'
-      +(paused?'<button class="btn" style="flex:1" onclick="resumeTimer()">▶️ 繼續</button>':'<button class="btn ghost" style="flex:1" onclick="pauseTimer()">⏸️ 暫停</button>')
-      +'<button class="btn gray" style="flex:1" onclick="cancelTimer()">✕ 取消</button></div>';
-  }else{
-    h+=(done?'<p style="margin:8px 0 10px">✅ 今日練習達成！還想加練：</p>':'<p class="sub" style="margin:8px 0 10px">選一個時間開始今天的練習</p>')
-      +'<div style="display:flex;gap:8px">'
-      +[10,15,30].map(m=>'<button class="btn '+(done?'ghost':'')+'" style="flex:1" onclick="startTimer('+m+')">'+m+' 分鐘</button>').join('')
-      +'</div>';
+    return '<div id="timerLeft" style="text-align:center;font-size:46px;font-weight:800;margin:4px 0;'+(paused?'opacity:.55':'')+'">'+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'</div>'
+      +'<div style="text-align:center;font-size:13px;opacity:.92;margin-bottom:12px;font-weight:600">'+(paused?'⏸️ 已暫停':'倒數結束就完成今天的練習')+'</div>'
+      +'<div class="tpills">'
+      +(paused?'<button class="tpill" style="background:rgba(255,255,255,.92);color:#C22A5C" onclick="resumeTimer()">▶ 繼續</button>':'<button class="tpill" onclick="pauseTimer()">⏸ 暫停</button>')
+      +'<button class="tpill" onclick="cancelTimer()">✕ 取消</button></div>';
   }
-  return h+'</div>';
+  let h='';
+  if(done)h+='<div style="font-size:14px;font-weight:700;margin-bottom:10px">✅ 今天已完成 '+done+' 分鐘，還想加練：</div>';
+  h+='<div class="tpills">'+[10,15,30].map(m=>'<button class="tpill" onclick="startTimer('+m+')">'+m+' 分鐘</button>').join('')+'</div>';
+  return h;
 }
 
 /* ============ 今日複習 ============ */
@@ -436,57 +497,60 @@ function buildQueue(){
     .sort((a,b)=>MASTERY[mast(a)].pr-MASTERY[mast(b)].pr||(a.lastReviewed||0)-(b.lastReviewed||0))
     .slice(0,remain);
 }
+function chip(m,n){return '<span class="chip"><span class="dot" style="background:var(--'+m+')"></span>'+MASTERY[m].label+'&nbsp;'+n+'</span>';}
 function renderHome(){
   renderCountdown();
+  document.getElementById('hero-timer').innerHTML=heroTimerHtml();
   const el=document.getElementById('home-body');
   const done=reviewedToday(),total=state.cards.length;
-  if(sessionOn&&qIdx<queue.length){renderReviewCard(el);return;}
-  sessionOn=false;
   const q=buildQueue();
-  let html='<div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>今日進度</b><span class="sub">'+done+' / '+dmax()+' 張</span></div>'
+  const cnt={easy:0,medium:0,hard:0,new:0};
+  state.cards.forEach(c=>cnt[mast(c)]++);
+  let html='<div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:17px">今日進度</b><span style="color:var(--accent);font-weight:800">'+done+' / '+dmax()+' 張</span></div>'
     +'<div class="prog"><i style="width:'+Math.min(100,done/dmax()*100)+'%"></i></div>';
   if(total===0){
-    html+='<p class="sub" style="margin:8px 0 12px">還沒有任何文法卡。先去「新增」上傳截圖，或載入範例資料試玩！</p><button class="btn full" onclick="go(\'add\')">➕ 去新增文法卡</button>';
+    html+='<p class="sub" style="margin:8px 0 4px">還沒有任何文法卡。先去「新增」上傳截圖，或載入範例資料試玩！</p>';
   }else if(done>=dmax()){
-    html+='<p style="margin:10px 0 4px">🎉 今日 '+dmax()+' 張完成，お疲れさま！</p>';
+    html+='<p style="margin:8px 0 4px">🎉 今日 '+dmax()+' 張完成，お疲れさま！</p>';
   }else if(q.length===0){
-    html+='<p style="margin:10px 0 4px">今天到期的卡都複習完了！（簡單的卡 7 天後、記憶中 3 天後、記不住隔天會再出現）</p>';
+    html+='<p class="sub" style="margin:8px 0 4px">今天到期的卡都複習完了！（簡單 7 天後、記憶中 3 天後、記不住隔天再出現）</p>';
   }else{
-    html+='<p class="sub" style="margin:8px 0 12px">今天有 '+q.length+' 張到期的卡（記不住的優先出現）</p><button class="btn full" onclick="startReview()">▶️ 開始複習</button>';
+    html+='<p class="sub" style="margin:8px 0 4px">今天有 '+q.length+' 張到期的卡（記不住的優先出現）</p>';
   }
-  if(total>0)html+='<button class="btn ghost full" style="margin-top:10px" onclick="startFree()">🔁 自由加練（不限次數，不計入每日進度）</button>';
-  html+='</div>';
-  html+=timerPanelHtml();
-  if(total>0){
-    const cnt={easy:0,medium:0,hard:0,new:0};
-    state.cards.forEach(c=>cnt[mast(c)]++);
-    html+='<div class="panel"><b>卡片總覽</b><span class="sub">（共 '+total+' 張）</span><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
-      +'<span class="badge b-hard">記不住 '+cnt.hard+'</span><span class="badge b-medium">記憶中 '+cnt.medium+'</span>'
-      +'<span class="badge b-easy">簡單 '+cnt.easy+'</span><span class="badge b-new">新卡 '+cnt.new+'</span></div></div>';
+  html+='<div style="border-top:1px solid var(--line);margin:14px 0 12px"></div>'
+    +'<b style="font-size:15px">卡片總覽</b><span class="sub">（共 '+total+' 張）</span>'
+    +'<div class="chips">'+chip('hard',cnt.hard)+chip('medium',cnt.medium)+chip('easy',cnt.easy)+chip('new',cnt.new)+'</div></div>';
+  if(total===0){
+    html+='<button class="btn full big" onclick="go(\'add\')">＋ 去新增文法卡</button>';
+  }else{
+    if(done<dmax()&&q.length)html+='<button class="btn full big" onclick="startReview()">▶ 開始複習</button>';
+    html+='<button class="btn ghost full big" onclick="startFree()">自由加練（不限次數）</button>';
   }
   el.innerHTML=html;
 }
-function startReview(){queue=buildQueue();qIdx=0;flipped=false;sessionOn=true;freeMode=false;renderHome();}
+function startReview(){queue=buildQueue();if(!queue.length)return;qIdx=0;flipped=false;sessionOn=true;freeMode=false;renderReviewModal();}
 function startFree(){
   queue=state.cards.slice().sort((a,b)=>MASTERY[mast(a)].pr-MASTERY[mast(b)].pr||(a.lastReviewed||0)-(b.lastReviewed||0));
-  qIdx=0;flipped=false;sessionOn=true;freeMode=true;renderHome();
+  if(!queue.length)return;
+  qIdx=0;flipped=false;sessionOn=true;freeMode=true;renderReviewModal();
 }
-function endSession(){sessionOn=false;freeMode=false;renderHome();}
+function endSession(){sessionOn=false;freeMode=false;closeModal();renderHome();}
 function exampleHtml(exs){
   return (exs||[]).map(e=>'<div class="ex">'+(e.label?'<div><span class="exlb">'+esc(e.label)+'</span></div>':'')+'<div>'+esc(e.jp)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(e.jp)+')">🔊</button></div><div class="zh">'+esc(e.zh)+'</div></div>').join('');
 }
 function usageHtml(c){return c.usage?'<div class="usage"><b>接續</b>\n'+esc(c.usage)+'</div>':'';}
 function attr(s){return "'"+String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ')+"'";}
-function renderReviewCard(el){
+function renderReviewModal(){
   const c=queue[qIdx];
-  const pos='<div class="sub" style="text-align:center;margin-bottom:10px">'
+  const pos='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="sub">'
     +(freeMode?'🔁 自由加練 ':'')+'第 '+(qIdx+1)+' / '+queue.length+' 張'
     +(freeMode?'':' · 今日已完成 '+reviewedToday()+' 張')
-    +' &nbsp;<a href="javascript:endSession()" style="color:var(--accent2)">結束</a></div>';
+    +'</span><button class="btn gray small" onclick="endSession()">✕ 結束</button></div>';
+  let inner;
   if(!flipped){
-    el.innerHTML=pos+'<div class="rcard" onclick="flipCard()"><div class="grammar">'+esc(c.grammar)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(c.grammar)+')">🔊</button></div><div class="hint">點擊卡片看解答 ▼</div></div>';
+    inner='<div class="rcard" onclick="flipCard()"><div class="grammar">'+esc(c.grammar)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(c.grammar)+')">🔊</button></div><div class="hint">點擊卡片看解答 ▼</div></div>';
   }else{
-    el.innerHTML=pos+'<div class="rcard" style="cursor:default;text-align:left"><div class="grammar" style="font-size:24px;text-align:center">'+esc(c.grammar)+'</div>'
+    inner='<div class="rcard" style="cursor:default;text-align:left"><div class="grammar" style="font-size:24px;text-align:center">'+esc(c.grammar)+'</div>'
       +'<div class="answer"><div class="meaning">'+esc(c.meaning)+'</div>'
       +usageHtml(c)
       +(c.explanation?'<div class="expl">💡 '+esc(c.explanation)+'</div>':'')
@@ -495,12 +559,13 @@ function renderReviewCard(el){
       +'</div></div>'
       +'<div class="rates"><button class="btn rate-hard" onclick="rate(\'hard\')">記不住</button><button class="btn rate-medium" onclick="rate(\'medium\')">記憶中</button><button class="btn rate-easy" onclick="rate(\'easy\')">簡單</button></div>';
   }
+  document.getElementById('modal-root').innerHTML='<div class="modal-bg"><div class="modal">'+pos+inner+'</div></div>';
   if(settings.autoSpeak!==false){
     if(!flipped)speak(c.grammar);
     else if(c.examples&&c.examples[0]&&c.examples[0].jp)speak(c.examples[0].jp);
   }
 }
-function flipCard(){flipped=true;renderHome();}
+function flipCard(){flipped=true;renderReviewModal();}
 function rate(r){
   const c=queue[qIdx];const real=state.cards.find(x=>x.id===c.id);
   if(real){
@@ -510,8 +575,14 @@ function rate(r){
   if(!freeMode){const t=todayStr();state.meta.reviewLog[t]=(state.meta.reviewLog[t]||0)+1;}
   saveLocal();
   qIdx++;flipped=false;
-  if(qIdx>=queue.length){if(freeMode)toast('這一輪練完了！可以再來一輪 🔁');sessionOn=false;freeMode=false;}
-  renderHome();
+  if(qIdx>=queue.length){
+    const wasFree=freeMode;
+    sessionOn=false;freeMode=false;closeModal();
+    toast(wasFree?'這一輪練完了！可以再來一輪 🔁':'🎉 本輪複習完成！');
+    renderHome();
+  }else{
+    renderReviewModal();renderHome();
+  }
 }
 /* ============ AI 辨識 ============ */
 const AI_PROMPT=`你是日文 JLPT N3 文法助教。請分析這張截圖並輸出 JSON。
@@ -714,6 +785,8 @@ function renderSettings(){
   document.getElementById('setExtra').value=settings.extra||'';
   document.getElementById('setDaily').value=dmax();
   document.getElementById('setSpeak').value=settings.autoSpeak===false?'0':'1';
+  document.getElementById('setGKey').value=settings.geminiKey||'';
+  document.getElementById('setGVoice').value=settings.geminiVoice||'Kore';
   document.getElementById('setStat').innerHTML=
     'AI 辨識：'+(settings.apiKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定</span>')
     +' ｜ 雲端同步：'+(settings.sbUrl&&settings.sbKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定（本機模式）</span>');
@@ -726,6 +799,9 @@ function saveSettings(){
   settings.extra=document.getElementById('setExtra').value.trim();
   settings.dailyMax=parseInt(document.getElementById('setDaily').value,10)||10;
   settings.autoSpeak=document.getElementById('setSpeak').value==='1';
+  settings.geminiKey=document.getElementById('setGKey').value.trim();
+  settings.geminiVoice=document.getElementById('setGVoice').value;
+  audioCache={};
   settings.sbUrl=document.getElementById('setSbUrl').value.trim().replace(/\/+$/,'');
   settings.sbKey=document.getElementById('setSbKey').value.trim();
   saveSettingsLocal();renderSettings();toast('設定已儲存');
