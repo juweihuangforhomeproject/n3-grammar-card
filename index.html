@@ -114,6 +114,13 @@ h1{font-size:20px}
 /* settings */
 .field{margin-bottom:14px}
 .field label{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-bottom:5px}
+.ptitle{font-size:16px;font-weight:800;margin-bottom:12px}
+.sw{position:relative;display:inline-block;width:48px;height:28px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:#ddd;border-radius:99px;transition:.2s;cursor:pointer}
+.sw span:before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw input:checked+span{background:var(--easy)}
+.sw input:checked+span:before{transform:translateX(20px)}
 .note{font-size:12.5px;color:var(--sub);line-height:1.55;margin-top:6px}
 .stat-ok{color:var(--easy);font-weight:700}.stat-bad{color:var(--hard);font-weight:700}
 
@@ -175,43 +182,21 @@ nav button.on{color:var(--accent)}
   <section class="page" id="page-set">
     <h1 style="margin-bottom:12px">設定</h1>
     <div class="panel">
-      <div class="field"><label>Anthropic API Key（截圖 AI 辨識用）</label>
-        <input type="password" id="setKey" placeholder="sk-ant-...">
-        <div class="note">在 console.anthropic.com 申請。沒填也能用手動新增與複習功能。</div></div>
-      <div class="field"><label>AI 模型</label>
-        <select id="setModel">
-          <option value="claude-sonnet-4-5">Claude Sonnet（辨識品質好，建議）</option>
-          <option value="claude-haiku-4-5">Claude Haiku（較便宜較快）</option>
-        </select></div>
+      <div class="ptitle">📖 複習</div>
       <div class="field"><label>每日複習張數上限</label>
         <input type="number" id="setDaily" min="1" max="100" inputmode="numeric">
         <div class="note">預設 10。考前衝刺可調高，自由加練不受此限制。</div></div>
-      <div class="field"><label>複習時自動發音</label>
-        <select id="setSpeak"><option value="1">開（出卡唸文法、翻卡唸例句）</option><option value="0">關</option></select></div>
-      <div class="field"><label>AI 額外指示（選填）</label>
-        <textarea id="setExtra" rows="3" placeholder="例：例句都要加ふりがな／解析再詳細一點／不要抓 N4 以下的文法"></textarea>
-        <div class="note">會附加在辨識指令的最後，用中文寫即可。留空則用預設行為。</div></div>
-      <div class="field"><label>Supabase URL（跨裝置同步用）</label>
-        <input type="text" id="setSbUrl" placeholder="https://xxxx.supabase.co"></div>
-      <div class="field"><label>Supabase publishable key</label>
-        <input type="password" id="setSbKey" placeholder="sb_publishable_...（舊版專案為 eyJ 開頭的 anon key）">
-        <div class="note">沒填則資料只存在此裝置。詳見設定教學。</div></div>
-      <button class="btn full" onclick="saveSettings()">儲存設定</button>
-      <div class="note" id="setStat" style="margin-top:8px"></div>
-    </div>
-    <div class="panel">
-      <div class="plabel" style="margin-bottom:8px">資料備份</div>
-      <div style="display:flex;gap:10px">
-        <button class="btn ghost small" onclick="exportData()">⬇️ 匯出 JSON</button>
-        <button class="btn ghost small" onclick="document.getElementById('importFile').click()">⬆️ 匯入 JSON</button>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:14px;font-weight:700">複習時自動發音</div>
+        <div class="note" style="margin-top:2px">開啟後出卡自動唸文法、翻卡自動唸例句</div></div>
+        <label class="sw"><input type="checkbox" id="setSpeak"><span></span></label>
       </div>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
     </div>
     <div class="panel">
-      <div class="plabel" style="margin-bottom:8px">發音設定</div>
+      <div class="ptitle">🔊 發音</div>
       <div class="field"><label>Gemini API Key（真人感發音，選填）</label>
         <input type="password" id="setGKey" placeholder="AIza...">
-        <div class="note">到 aistudio.google.com/apikey 免費申請。填了就用 Gemini 真人感語音，額度用完或失敗時自動改用裝置內建語音；留空則一律用內建語音。</div></div>
+        <div class="note">到 aistudio.google.com/apikey 免費申請。額度用完或失敗時自動改用裝置內建語音；留空則一律用內建語音。</div></div>
       <div class="field"><label>Gemini 語音</label>
         <select id="setGVoice">
           <option value="Kore">Kore（女聲，沉穩）</option>
@@ -220,8 +205,46 @@ nav button.on{color:var(--accent)}
           <option value="Puck">Puck（男聲，活潑）</option>
           <option value="Charon">Charon（男聲，低沉）</option>
         </select></div>
+      <div class="field"><label>Gemini 使用範圍</label>
+        <select id="setTtsMode">
+          <option value="all">全部發音都用 Gemini</option>
+          <option value="manual">省額度：只有手動按 🔊 用 Gemini（自動發音用內建）</option>
+        </select>
+        <div class="note">生成過的句子會永久存在裝置裡，重複播放不耗額度。</div></div>
       <button class="btn gray small" onclick="speak('日本語の文法を勉強しましょう')">🔊 測試日文發音</button>
-      <div class="note">記得先按上方「儲存設定」再測試。iPhone 用內建語音若無聲，請關閉靜音鍵，並到 設定→輔助使用→朗讀內容 下載日文語音。</div>
+      <div class="note">改了 key 或語音，先按最下方「儲存設定」再測試。iPhone 內建語音若無聲，請關閉靜音鍵並到 設定→輔助使用→朗讀內容 下載日文語音。</div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">🤖 AI 辨識</div>
+      <div class="field"><label>Anthropic API Key（截圖 AI 辨識用）</label>
+        <input type="password" id="setKey" placeholder="sk-ant-...">
+        <div class="note">在 console.anthropic.com 申請。沒填也能用手動新增與複習功能。</div></div>
+      <div class="field"><label>AI 模型</label>
+        <select id="setModel">
+          <option value="claude-sonnet-4-5">Claude Sonnet（辨識品質好，建議）</option>
+          <option value="claude-haiku-4-5">Claude Haiku（較便宜較快）</option>
+        </select></div>
+      <div class="field"><label>AI 額外指示（選填）</label>
+        <textarea id="setExtra" rows="3" placeholder="例：例句都要加ふりがな／解析再詳細一點／不要抓 N4 以下的文法"></textarea>
+        <div class="note">會附加在辨識指令的最後，用中文寫即可。留空則用預設行為。</div></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">☁️ 雲端同步</div>
+      <div class="field"><label>Supabase URL</label>
+        <input type="text" id="setSbUrl" placeholder="https://xxxx.supabase.co"></div>
+      <div class="field"><label>Supabase publishable key</label>
+        <input type="password" id="setSbKey" placeholder="sb_publishable_...（舊版專案為 eyJ 開頭的 anon key）">
+        <div class="note">沒填則資料只存在此裝置。詳見設定教學。</div></div>
+    </div>
+    <button class="btn full big" onclick="saveSettings()">儲存設定</button>
+    <div class="note" id="setStat" style="text-align:center;margin-bottom:14px"></div>
+    <div class="panel">
+      <div class="ptitle">💾 資料備份</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost small" onclick="exportData()">⬇️ 匯出 JSON</button>
+        <button class="btn ghost small" onclick="document.getElementById('importFile').click()">⬆️ 匯入 JSON</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
     </div>
     <div class="panel">
       <button class="btn small" style="background:var(--hard)" onclick="clearAll()">🗑️ 清除全部資料</button>
@@ -250,7 +273,7 @@ function dmax(){const n=parseInt(settings.dailyMax,10);return n>0?n:10;}
 const MASTERY = {hard:{label:'記不住',cls:'hard',pr:0},medium:{label:'記憶中',cls:'medium',pr:1},new:{label:'新卡',cls:'new',pr:2},easy:{label:'簡單',cls:'easy',pr:3}};
 
 let state = {cards:[],sources:[],meta:{reviewLog:{},deleted:{},visits:{}}};
-let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:'',extra:'',dailyMax:10,autoSpeak:true,geminiKey:'',geminiVoice:'Kore'};
+let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:'',extra:'',dailyMax:10,autoSpeak:false,geminiKey:'',geminiVoice:'Kore',ttsMode:'all'};
 let sb=null, applyingRemote=false, saveTimer=null, lastPushStamp=0;
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
@@ -370,11 +393,29 @@ function pcmToWav(b64){
   return new Blob([buf],{type:'audio/wav'});
 }
 function playBlob(blob){player.pause();player.src=URL.createObjectURL(blob);player.play().catch(()=>{});}
-let ttsSeq=0,ttsPending={};
+let ttsSeq=0,ttsPending={},ttsDB=null;
+(function(){
+  try{
+    const r=indexedDB.open('n3tts',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('audio');
+    r.onsuccess=()=>{ttsDB=r.result;};
+  }catch(e){}
+})();
+function dbGetAudio(key){
+  return new Promise(res=>{
+    if(!ttsDB)return res(null);
+    try{const t=ttsDB.transaction('audio').objectStore('audio').get(key);
+      t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);
+    }catch(e){res(null);}
+  });
+}
+function dbPutAudio(key,blob){try{if(ttsDB)ttsDB.transaction('audio','readwrite').objectStore('audio').put(blob,key);}catch(e){}}
 async function fetchTts(text){
   const key=settings.geminiVoice+'|'+text;
   if(audioCache[key])return audioCache[key];
   if(ttsPending[key])return ttsPending[key];
+  const saved=await dbGetAudio(key);
+  if(saved){audioCache[key]=saved;return saved;}
   const p=(async()=>{
     const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key='+encodeURIComponent(settings.geminiKey),{
       method:'POST',headers:{'content-type':'application/json'},
@@ -387,6 +428,7 @@ async function fetchTts(text){
     if(!b64)throw new Error('TTS 回應為空');
     const blob=pcmToWav(b64);
     audioCache[key]=blob;
+    dbPutAudio(key,blob);
     return blob;
   })();
   ttsPending[key]=p;
@@ -397,10 +439,11 @@ async function speakGemini(text){
   const blob=await fetchTts(text);
   if(my===ttsSeq)playBlob(blob);
 }
-function prefetchTts(text){if(settings.geminiKey&&text)fetchTts(text).catch(()=>{});}
-function speak(text){
+function geminiOn(auto){return !!settings.geminiKey&&(!auto||settings.ttsMode!=='manual');}
+function prefetchTts(text){if(geminiOn(true)&&text)fetchTts(text).catch(()=>{});}
+function speak(text,auto){
   if(!text)return;
-  if(settings.geminiKey){
+  if(geminiOn(auto)){
     speakGemini(text).catch(e=>{
       console.error('gemini tts',e);
       if(e.status===429)toast('Gemini 語音達免費額度/頻率上限，暫用內建語音');
@@ -576,9 +619,9 @@ function renderReviewModal(){
   document.getElementById('modal-root').innerHTML='<div class="modal-bg"><div class="modal">'+pos+inner+'</div></div>';
   if(settings.autoSpeak!==false){
     if(!flipped){
-      speak(c.grammar);
+      speak(c.grammar,true);
       if(c.examples&&c.examples[0]&&c.examples[0].jp)prefetchTts(c.examples[0].jp);
-    }else if(c.examples&&c.examples[0]&&c.examples[0].jp)speak(c.examples[0].jp);
+    }else if(c.examples&&c.examples[0]&&c.examples[0].jp)speak(c.examples[0].jp,true);
   }
 }
 function flipCard(){flipped=true;renderReviewModal();}
@@ -800,9 +843,10 @@ function renderSettings(){
   document.getElementById('setSbKey').value=settings.sbKey;
   document.getElementById('setExtra').value=settings.extra||'';
   document.getElementById('setDaily').value=dmax();
-  document.getElementById('setSpeak').value=settings.autoSpeak===false?'0':'1';
+  document.getElementById('setSpeak').checked=settings.autoSpeak===true;
   document.getElementById('setGKey').value=settings.geminiKey||'';
   document.getElementById('setGVoice').value=settings.geminiVoice||'Kore';
+  document.getElementById('setTtsMode').value=settings.ttsMode||'all';
   document.getElementById('setStat').innerHTML=
     'AI 辨識：'+(settings.apiKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定</span>')
     +' ｜ 雲端同步：'+(settings.sbUrl&&settings.sbKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定（本機模式）</span>');
@@ -814,9 +858,10 @@ function saveSettings(){
   settings.model=document.getElementById('setModel').value;
   settings.extra=document.getElementById('setExtra').value.trim();
   settings.dailyMax=parseInt(document.getElementById('setDaily').value,10)||10;
-  settings.autoSpeak=document.getElementById('setSpeak').value==='1';
+  settings.autoSpeak=document.getElementById('setSpeak').checked;
   settings.geminiKey=document.getElementById('setGKey').value.trim();
   settings.geminiVoice=document.getElementById('setGVoice').value;
+  settings.ttsMode=document.getElementById('setTtsMode').value;
   audioCache={};
   settings.sbUrl=document.getElementById('setSbUrl').value.trim().replace(/\/+$/,'');
   settings.sbKey=document.getElementById('setSbKey').value.trim();
