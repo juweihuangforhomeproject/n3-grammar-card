@@ -62,6 +62,8 @@ h1{font-size:20px}
 /* review card */
 .rcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 20px;box-shadow:var(--shadow);min-height:220px;display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer}
 .rcard .grammar{font-size:30px;font-weight:800;letter-spacing:.02em}
+.rcard .fex{font-size:17px;line-height:1.75;margin-top:16px}
+.fexback{background:#FDF0F3;border-radius:10px;padding:10px 12px;font-size:14.5px;line-height:1.7;margin-bottom:10px;color:var(--accent2)}
 .rcard .hint{color:var(--sub);font-size:13px;margin-top:14px}
 .answer{text-align:left;margin-top:6px}
 .answer .meaning{font-size:17px;font-weight:700;color:var(--accent2);margin-bottom:10px}
@@ -71,7 +73,8 @@ h1{font-size:20px}
 .exlb{display:inline-block;font-size:11px;font-weight:700;color:var(--accent2);border:1px solid var(--accent2);border-radius:6px;padding:1px 7px;margin-bottom:3px;vertical-align:2px}
 .usage{background:#FDF0F3;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.75;margin-bottom:10px;color:var(--accent2);white-space:pre-wrap}
 .src{font-size:12.5px;color:var(--sub);background:#f6f1e8;border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5;white-space:pre-wrap}
-.speak{background:none;border:none;cursor:pointer;font-size:17px;padding:2px 6px;vertical-align:middle}
+.speak{background:none;border:none;cursor:pointer;padding:2px 6px;vertical-align:middle;color:var(--accent2)}
+.speak svg{width:19px;height:19px;vertical-align:-4px}
 .rates{display:flex;gap:10px;margin-top:14px}
 .rates .btn{flex:1;padding:13px 4px;font-size:15px}
 .rate-easy{background:var(--easy)} .rate-medium{background:var(--medium)} .rate-hard{background:var(--hard)}
@@ -194,24 +197,23 @@ nav button.on{color:var(--accent)}
     </div>
     <div class="panel">
       <div class="ptitle">🔊 發音</div>
-      <div class="field"><label>Gemini API Key（真人感發音，選填）</label>
+      <div class="field"><label>Google Cloud TTS API Key（真人發音，選填）</label>
         <input type="password" id="setGKey" placeholder="AIza...">
-        <div class="note">到 aistudio.google.com/apikey 免費申請。額度用完或失敗時自動改用裝置內建語音；留空則一律用內建語音。</div></div>
-      <div class="field"><label>Gemini 語音</label>
+        <div class="note">每月 100 萬字元免費額度，一般使用等於免費。申請步驟見「設定教學」。失敗時自動改用裝置內建語音；留空則一律用內建語音。</div></div>
+      <div class="field"><label>語音</label>
         <select id="setGVoice">
-          <option value="Kore">Kore（女聲，沉穩）</option>
-          <option value="Leda">Leda（女聲，年輕）</option>
-          <option value="Aoede">Aoede（女聲，輕快）</option>
-          <option value="Puck">Puck（男聲，活潑）</option>
-          <option value="Charon">Charon（男聲，低沉）</option>
+          <option value="ja-JP-Neural2-B">Neural2-B（女聲，標準）</option>
+          <option value="ja-JP-Neural2-C">Neural2-C（男聲）</option>
+          <option value="ja-JP-Neural2-D">Neural2-D（男聲，低沉）</option>
+          <option value="ja-JP-Wavenet-A">Wavenet-A（女聲，清亮）</option>
         </select></div>
-      <div class="field"><label>Gemini 使用範圍</label>
+      <div class="field"><label>使用範圍</label>
         <select id="setTtsMode">
-          <option value="all">全部發音都用 Gemini</option>
-          <option value="manual">省額度：只有手動按 🔊 用 Gemini（自動發音用內建）</option>
+          <option value="all">全部發音都用真人發音</option>
+          <option value="manual">省額度：只有手動按發音鈕才用（自動發音用內建）</option>
         </select>
         <div class="note">生成過的句子會永久存在裝置裡，重複播放不耗額度。</div></div>
-      <button class="btn gray small" onclick="speak('日本語の文法を勉強しましょう')">🔊 測試日文發音</button>
+      <button class="btn gray small" onclick="speak('日本語の文法を勉強しましょう')">測試日文發音</button>
       <div class="note">改了 key 或語音，先按最下方「儲存設定」再測試。iPhone 內建語音若無聲，請關閉靜音鍵並到 設定→輔助使用→朗讀內容 下載日文語音。</div>
     </div>
     <div class="panel">
@@ -271,9 +273,10 @@ const TARGET = new Date(2026,11,1); // 2026-12-01
 const INTERVALS = {hard:1,medium:3,easy:7,new:0}; // 間隔重複：幾天後到期
 function dmax(){const n=parseInt(settings.dailyMax,10);return n>0?n:10;}
 const MASTERY = {hard:{label:'記不住',cls:'hard',pr:0},medium:{label:'記憶中',cls:'medium',pr:1},new:{label:'新卡',cls:'new',pr:2},easy:{label:'簡單',cls:'easy',pr:3}};
+const SPK='<svg viewBox="0 0 24 24" fill="currentColor" aria-label="發音"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
 
 let state = {cards:[],sources:[],meta:{reviewLog:{},deleted:{},visits:{}}};
-let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:'',extra:'',dailyMax:10,autoSpeak:false,geminiKey:'',geminiVoice:'Kore',ttsMode:'all'};
+let settings = {apiKey:'',model:'claude-sonnet-4-5',sbUrl:'',sbKey:'',extra:'',dailyMax:10,autoSpeak:false,ttsKey:'',ttsVoice:'ja-JP-Neural2-B',ttsMode:'all'};
 let sb=null, applyingRemote=false, saveTimer=null, lastPushStamp=0;
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
@@ -373,7 +376,7 @@ function speakLocal(text){
   u.lang='ja-JP';if(jaVoice)u.voice=jaVoice;u.rate=0.88;
   speechSynthesis.speak(u);
 }
-/* Gemini TTS（真人感發音）*/
+/* Google Cloud TTS（真人發音）*/
 const player=new Audio();
 let audioUnlocked=false,audioCache={};
 document.addEventListener('click',()=>{
@@ -381,16 +384,10 @@ document.addEventListener('click',()=>{
   player.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
   player.play().catch(()=>{});
 },{once:true});
-function pcmToWav(b64){
-  const bin=atob(b64),n=bin.length,rate=24000;
-  const buf=new ArrayBuffer(44+n),v=new DataView(buf);
-  const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
-  w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVE');w(12,'fmt ');
-  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
-  v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
-  w(36,'data');v.setUint32(40,n,true);
-  for(let i=0;i<n;i++)v.setUint8(44+i,bin.charCodeAt(i));
-  return new Blob([buf],{type:'audio/wav'});
+function b64ToBlob(b64,type){
+  const bin=atob(b64),arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:type});
 }
 function playBlob(blob){player.pause();player.src=URL.createObjectURL(blob);player.play().catch(()=>{});}
 let ttsSeq=0,ttsPending={},ttsDB=null;
@@ -411,22 +408,25 @@ function dbGetAudio(key){
 }
 function dbPutAudio(key,blob){try{if(ttsDB)ttsDB.transaction('audio','readwrite').objectStore('audio').put(blob,key);}catch(e){}}
 async function fetchTts(text){
-  const key=settings.geminiVoice+'|'+text;
+  const key=(settings.ttsVoice||'ja-JP-Neural2-B')+'|'+text;
   if(audioCache[key])return audioCache[key];
   if(ttsPending[key])return ttsPending[key];
   const saved=await dbGetAudio(key);
   if(saved){audioCache[key]=saved;return saved;}
   const p=(async()=>{
-    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key='+encodeURIComponent(settings.geminiKey),{
+    const res=await fetch('https://texttospeech.googleapis.com/v1/text:synthesize?key='+encodeURIComponent(settings.ttsKey),{
       method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:text}]}],
-        generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:settings.geminiVoice||'Kore'}}}}})
+      body:JSON.stringify({input:{text:text},
+        voice:{languageCode:'ja-JP',name:settings.ttsVoice||'ja-JP-Neural2-B'},
+        audioConfig:{audioEncoding:'MP3',speakingRate:0.95}})
     });
-    if(!res.ok){const e=new Error('TTS '+res.status);e.status=res.status;throw e;}
+    if(!res.ok){
+      let msg='';try{const j=await res.json();msg=j.error&&j.error.message||'';}catch(x){}
+      const e=new Error('TTS '+res.status+' '+msg);e.status=res.status;e.msg=msg;throw e;
+    }
     const data=await res.json();
-    const b64=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts[0].inlineData&&data.candidates[0].content.parts[0].inlineData.data;
-    if(!b64)throw new Error('TTS 回應為空');
-    const blob=pcmToWav(b64);
+    if(!data.audioContent)throw new Error('TTS 回應為空');
+    const blob=b64ToBlob(data.audioContent,'audio/mpeg');
     audioCache[key]=blob;
     dbPutAudio(key,blob);
     return blob;
@@ -434,22 +434,33 @@ async function fetchTts(text){
   ttsPending[key]=p;
   try{return await p;}finally{delete ttsPending[key];}
 }
-async function speakGemini(text){
+async function speakCloud(text){
   const my=++ttsSeq;
   const blob=await fetchTts(text);
   if(my===ttsSeq)playBlob(blob);
 }
-function geminiOn(auto){return !!settings.geminiKey&&(!auto||settings.ttsMode!=='manual');}
-function prefetchTts(text){if(geminiOn(true)&&text)fetchTts(text).catch(()=>{});}
+let ttsLimitedUntil=0;
+function cloudOn(auto){return !!settings.ttsKey&&Date.now()>ttsLimitedUntil&&(!auto||settings.ttsMode!=='manual');}
+function prefetchTts(text){if(cloudOn(true)&&text)fetchTts(text).catch(()=>{});}
 function speak(text,auto){
   if(!text)return;
-  if(geminiOn(auto)){
-    speakGemini(text).catch(e=>{
-      console.error('gemini tts',e);
-      if(e.status===429)toast('Gemini 語音達免費額度/頻率上限，暫用內建語音');
+  const key=(settings.ttsVoice||'ja-JP-Neural2-B')+'|'+text;
+  if(settings.ttsKey&&audioCache[key]){playBlob(audioCache[key]);return;}
+  if(cloudOn(auto)){
+    speakCloud(text).catch(e=>{
+      console.error('cloud tts',e);
+      let hint='';
+      if(e.status===403)hint=(e.msg||'').toLowerCase().includes('billing')?'：專案未啟用帳單':'：金鑰無效或 API 未啟用';
+      else if(e.status===400)hint='：金鑰格式有誤';
+      else if(e.status===429)hint='：達額度上限';
+      if(e.status)toast('真人發音失敗（'+e.status+hint+'），改用內建語音');
+      if(e.status===429)ttsLimitedUntil=Date.now()+5*60*1000;
       speakLocal(text);
     });
-  }else speakLocal(text);
+  }else{
+    speakLocal(text);
+    if(settings.ttsKey)dbGetAudio(key).then(b=>{if(b)audioCache[key]=b;});
+  }
 }
 
 /* ============ nav / countdown ============ */
@@ -621,7 +632,7 @@ function startCategory(m,cards,pick){
 }
 function endSession(){sessionOn=false;freeMode=false;closeModal();renderHome();}
 function exampleHtml(exs){
-  return (exs||[]).map(e=>'<div class="ex">'+(e.label?'<div><span class="exlb">'+esc(e.label)+'</span></div>':'')+'<div>'+esc(e.jp)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(e.jp)+')">🔊</button></div><div class="zh">'+esc(e.zh)+'</div></div>').join('');
+  return (exs||[]).map(e=>'<div class="ex">'+(e.label?'<div><span class="exlb">'+esc(e.label)+'</span></div>':'')+'<div>'+esc(e.jp)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(e.jp)+')">'+SPK+'</button></div><div class="zh">'+esc(e.zh)+'</div></div>').join('');
 }
 function usageHtml(c){return c.usage?'<div class="usage"><b>接續</b>\n'+esc(c.usage)+'</div>':'';}
 function attr(s){return "'"+String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ')+"'";}
@@ -631,15 +642,19 @@ function renderReviewModal(){
     +(freeMode?sessionLabel+' ':'')+'第 '+(qIdx+1)+' / '+queue.length+' 張'
     +(freeMode?'':' · 今日已完成 '+reviewedToday()+' 張')
     +'</span><button class="btn gray small" onclick="endSession()">✕ 結束</button></div>';
+  const ex0=c.examples&&c.examples[0];
   let inner;
   if(!flipped){
-    inner='<div class="rcard" onclick="flipCard()"><div class="grammar">'+esc(c.grammar)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(c.grammar)+')">🔊</button></div><div class="hint">點擊卡片看解答 ▼</div></div>';
+    inner='<div class="rcard" onclick="flipCard()"><div class="grammar">'+esc(c.grammar)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(c.grammar)+')">'+SPK+'</button></div>'
+      +(ex0&&ex0.jp?'<div class="fex">'+esc(ex0.jp)+' <button class="speak" onclick="event.stopPropagation();speak('+attr(ex0.jp)+')">'+SPK+'</button></div>':'')
+      +'</div>';
   }else{
     inner='<div class="rcard" style="cursor:default;text-align:left"><div class="grammar" style="font-size:24px;text-align:center">'+esc(c.grammar)+'</div>'
       +'<div class="answer"><div class="meaning">'+esc(c.meaning)+'</div>'
+      +(ex0&&ex0.jp?'<div class="fexback"><div style="font-size:11.5px;font-weight:700;margin-bottom:4px">正面例句'+(ex0.label?'（'+esc(ex0.label)+'）':'')+'</div><div>'+esc(ex0.jp)+' <button class="speak" onclick="speak('+attr(ex0.jp)+')">'+SPK+'</button></div><div class="zh" style="color:inherit;opacity:.8;font-size:13px">'+esc(ex0.zh)+'</div></div>':'')
       +usageHtml(c)
+      +exampleHtml((c.examples||[]).slice(1))
       +(c.explanation?'<div class="expl">💡 '+esc(c.explanation)+'</div>':'')
-      +exampleHtml(c.examples)
       +(c.source?'<div class="src">📷 原文：'+esc(c.source)+'</div>':'')
       +'</div></div>'
       +'<div class="rates"><button class="btn rate-hard" onclick="rate(\'hard\')">記不住</button><button class="btn rate-medium" onclick="rate(\'medium\')">記憶中</button><button class="btn rate-easy" onclick="rate(\'easy\')">簡單</button></div>';
@@ -821,7 +836,7 @@ function openCard(id){
   const m=mast(c);
   document.getElementById('modal-root').innerHTML=
   '<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">'
-  +'<h3>'+esc(c.grammar)+' <button class="speak" onclick="speak('+attr(c.grammar)+')">🔊</button></h3>'
+  +'<h3>'+esc(c.grammar)+' <button class="speak" onclick="speak('+attr(c.grammar)+')">'+SPK+'</button></h3>'
   +'<span class="badge b-'+m+'">'+MASTERY[m].label+'</span> <span class="sub">複習 '+(c.reviewCount||0)+' 次</span>'
   +'<div class="answer" style="margin-top:12px"><div class="meaning">'+esc(c.meaning)+'</div>'
   +usageHtml(c)
@@ -872,8 +887,8 @@ function renderSettings(){
   document.getElementById('setExtra').value=settings.extra||'';
   document.getElementById('setDaily').value=dmax();
   document.getElementById('setSpeak').checked=settings.autoSpeak===true;
-  document.getElementById('setGKey').value=settings.geminiKey||'';
-  document.getElementById('setGVoice').value=settings.geminiVoice||'Kore';
+  document.getElementById('setGKey').value=settings.ttsKey||'';
+  document.getElementById('setGVoice').value=settings.ttsVoice||'ja-JP-Neural2-B';
   document.getElementById('setTtsMode').value=settings.ttsMode||'all';
   document.getElementById('setStat').innerHTML=
     'AI 辨識：'+(settings.apiKey?'<span class="stat-ok">已設定</span>':'<span class="stat-bad">未設定</span>')
@@ -887,8 +902,8 @@ function saveSettings(){
   settings.extra=document.getElementById('setExtra').value.trim();
   settings.dailyMax=parseInt(document.getElementById('setDaily').value,10)||10;
   settings.autoSpeak=document.getElementById('setSpeak').checked;
-  settings.geminiKey=document.getElementById('setGKey').value.trim();
-  settings.geminiVoice=document.getElementById('setGVoice').value;
+  settings.ttsKey=document.getElementById('setGKey').value.trim();
+  settings.ttsVoice=document.getElementById('setGVoice').value;
   settings.ttsMode=document.getElementById('setTtsMode').value;
   audioCache={};
   settings.sbUrl=document.getElementById('setSbUrl').value.trim().replace(/\/+$/,'');
